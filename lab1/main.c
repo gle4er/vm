@@ -27,12 +27,10 @@ void check_reg()
     printf("\n--REGISTER CHECK--\n");
     sc_regInit();
     int tmp = 0;
-    if (!sc_regSet(ZERO_ERR, 1)) {
+    if (!sc_regSet(FREQ_ERR, 1)) {
         printf("Set pass\n");
-        for (int i = 0; i < 5; i++)
-            printf("%d", reg_flag[i]);
-        printf("\n");
-        if (!sc_regGet(OVERFLOW, &tmp) && tmp == 1) {
+        printf("%d\n", reg_flag);
+        if (!sc_regGet(FREQ_ERR, &tmp) && tmp == 1) {
             printf("Get pass\n");
             printf("**REGISTER OK\n");
         }

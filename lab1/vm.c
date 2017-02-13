@@ -73,8 +73,7 @@ int sc_memoryLoad(char *filename)
 
 int sc_regInit()
 {
-    for (int i = 0; i < 5; i++)
-        reg_flag[i] = 0;
+    reg_flag = 0;
     return 0;
 }
 
@@ -82,9 +81,9 @@ int sc_regSet(int regist, int value)
 {
     if (regist >= 0x01 && regist <= 0x10) {
         if (value == 0)
-            reg_flag[regist - 1] &= value;
+            reg_flag = reg_flag & regist;
         if (value == 1)
-            reg_flag[regist - 1] |= value;
+            reg_flag = reg_flag | regist;
         else {
             fprintf(stderr, "Wrong value for register\n");
             return -5;
@@ -98,8 +97,8 @@ int sc_regSet(int regist, int value)
 
 int sc_regGet(int regist, int *value)
 {
-    if (regist >= 0x01 && regist <= 0x10)
-        *value = reg_flag[regist];
+    if (regist >= 0x1 && regist <= 0x10)
+        *value = (reg_flag & regist) > 0 ? 1 : 0;
     else {
         fprintf(stderr, "Wrong register selected\n");
         return -6;

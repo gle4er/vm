@@ -3,14 +3,14 @@
 
 #include <stdio.h>
 
-#define OVERFLOW 0x01
-#define ZERO_ERR 0x02
-#define OUT_OF_MEMORY 0x04 
-#define FREQ_ERR 0x08 
+#define OVERFLOW 0x1
+#define ZERO_ERR 0x2
+#define OUT_OF_MEMORY 0x4 
+#define FREQ_ERR 0x8 
 #define COMMAND_ERR 0x10
 
 char memory[100];
-int reg_flag[5];
+int reg_flag;
 
 int sc_memoryInit();
 int sc_memorySet(int address, int value);
