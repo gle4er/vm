@@ -9,8 +9,18 @@
 #define FREQ_ERR 0x08 
 #define COMMAND_ERR 0x10
 
+#define OK 0
+#define OOM -1
+#define OPEN_ERR -2
+#define WRITE_ERR -3
+#define READ_ERR -4
+#define WRONG_VALUE -5
+#define WRONG_REGISTER -6
+#define WRONG_OPERAND -7
+#define WRONG_COMMAND -8
+
 char memory[100];
-int reg_flag[5];
+int reg_flag;
 
 int sc_memoryInit();
 int sc_memorySet(int address, int value);
