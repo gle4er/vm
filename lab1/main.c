@@ -31,6 +31,7 @@ void check_reg()
         printf("Set pass\n");
         printf("%d\n", reg_flag);
         if (!sc_regGet(FREQ_ERR, &tmp) && tmp == 1) {
+            printf("%d\n", tmp);
             printf("Get pass\n");
             printf("**REGISTER OK\n");
         }
