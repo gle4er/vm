@@ -2,13 +2,20 @@
 
 int mt_clrscr()
 {
-    printf("\E[H\E[J");
+    write(1, "\E[H\E[J", sizeof(char) * strlen("\E[H\E[J"));
     return 0;
 }
 
 int mt_gotoXY(int x, int y)
 {
-    printf("\E[0%d;%dH", x, y);
+    char buf[18] = "\E[0", x1[5] = {0} , y1[5] = {0};
+    sprintf(x1, "%d", x);
+    sprintf(y1, "%d", y);
+    strcat(buf, x1);
+    strcat(buf, ";");
+    strcat(buf, y1);
+    strcat(buf, "H");
+    write(1, buf, 18);
     return 0;
 }
 
@@ -25,7 +32,7 @@ int mt_getscreensize(int *rows, int *cols)
         *cols = ws.ws_cols;
         return 0;
     } else {
-        fprintf(stderr, "Error getting size\n");
+        write(2, "Error getting size\n", strlen("Error getting size\n") * sizeof(char));
         return -1;
     }
 }
@@ -61,7 +68,11 @@ int mt_setfgcolor(enum colors colors)
         default:
             return -1;
     }
-    printf("\E[3%dm", color);
+    char buf[8] = "\E[3", color1[2] = {0};
+    sprintf(color1, "%d", color);
+    strcat(buf, color1);
+    strcat(buf, "m");
+    write(1, buf, sizeof(buf));
     return 0;
 }
 
@@ -96,7 +107,11 @@ int mt_setbgcolor(enum colors colors)
         default:
             return -1;
     }
-    printf("\E[4%dm", color);
+    char buf[8] = "\E[4", color1[2] = {0};
+    sprintf(color1, "%d", color);
+    strcat(buf, color1);
+    strcat(buf, "m");
+    write(1, buf, sizeof(buf));
     return 0;
 }
 

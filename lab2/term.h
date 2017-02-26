@@ -2,6 +2,9 @@
 #define MYTERM_H
 
 #include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 #include <sys/ioctl.h>
 
 enum colors {black, red, green, yellow, blue,
