@@ -75,7 +75,7 @@ int sc_regSet(int regist, int value)
     if (regist >= 0x01 && regist <= 0x10) {
         if (value == 0)
             reg_flag &= regist;
-        if (value == 1)
+        else if (value == 1)
             reg_flag |= regist;
         else {
             fprintf(stderr, "Wrong value for register\n");
@@ -90,7 +90,7 @@ int sc_regSet(int regist, int value)
 
 int sc_regGet(int regist, int *value)
 {
-    if (regist >= 0x1 && regist <= 0x10)
+    if (regist >= 0x01 && regist <= 0x10)
         *value = (reg_flag & regist) > 0 ? 1 : 0;
     else {
         fprintf(stderr, "Wrong register selected\n");
