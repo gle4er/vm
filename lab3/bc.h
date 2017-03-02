@@ -1,17 +1,11 @@
 #ifndef BC_H
 #define BC_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
-enum color {black, red, green, yellow, blue,
-    purple, cyan, white} colors;
+#include "mt.h"
 
 int bc_printA(char *str);
 int bc_box(int x1, int y1, int x2, int y2);
-int bc_printbigchar(int *bit, int x, int y, enum color, enum color);
+int bc_printbigchar(int *bit, int x, int y, enum colors fgcolor, enum colors bgcolor);
 int bc_setbigcharpos(int *big, int x, int y, int value);
 int bc_getbigcharpos(int *big, int x, int y, int *value);
 int bc_bigcharwrite(int fd, int *big, int count);
