@@ -9,5 +9,7 @@ int main()
     mt_setfgcolor(red);
     mt_setbgcolor(cyan);
     printf("%dx%d\n", rows, cols);
+    mt_setfgcolor(white);
+    mt_setbgcolor(black);
     return 0;
 }

@@ -7,8 +7,10 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 
-enum colors {black, red, green, yellow, blue,
-    purple, cyan, white} colors;
+enum colors {
+    black = 0, red, green, yellow, blue, 
+    purple, cyan, white, MAX_COLORS    
+} colors;
 
 int mt_clrscr();
 int mt_gotoXY(int x, int y);
