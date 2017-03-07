@@ -85,15 +85,15 @@ int bc_getbigcharpos(int *big, int x, int y, int *value)
 int bc_bigcharwrite(int fd, int *big, int count)
 {
     for (int i = 0; i < count * 2; i++)
-        if (write(fd, &big[i], sizeof(int) * 2) == -1)
+        if (write(fd, &big[i], sizeof(int)) == -1)
             return -1;
     return 0;
 }
 
 int bc_bigcharread(int fd, int *big, int need_count, int *count)
 {
-    for (*count = 0; (*count <= need_count * 2); *count += 1) 
-        if (read(fd, &big[*count], sizeof(int) * 2) == -1)
+    for (*count = 0; (*count < need_count * 2); *count += 1) 
+        if (read(fd, &big[*count], sizeof(int)) == -1)
             return -1;
     return 0;
 }
