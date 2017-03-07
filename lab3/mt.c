@@ -18,7 +18,7 @@ int mt_gotoXY(int x, int y)
     int rows, cols;
     mt_getscreensize(&rows, &cols);
     if ((0 < x < cols) && (0 < y < rows)) {
-        sprintf(buf, "\E[0%d;%dH", x, y);
+        sprintf(buf, "\E[0%d;%dH", y, x);
         write(1, buf, strlen(buf));
     } else
         return -1;

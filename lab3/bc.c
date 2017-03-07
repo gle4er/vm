@@ -14,21 +14,22 @@ int bc_printA(char *str)
 
 int bc_box(int x1, int y1, int x2, int y2)
 {
-    for (int i = y1; i < y2; i++)
-        for (int j = x1; j < x2; j++) {
-            if (i == y1 && j == x1)
+    for (int i = 0; i < y2; i++)
+        for (int j = 0; j < x2; j++) {
+            mt_gotoXY(x1 + j, y1 + i);
+            if (i == 0 && j == 0)
                 bc_printA("l");
-            else if (i == y1 && j == x2 - 1)
+            else if (i == 0 && j == x2 - 1)
                 bc_printA("k\n");
-            else if (i == y2 - 1 && j == x1)
+            else if (i == y2 - 1 && j == 0)
                 bc_printA("m");
             else if (i == y2 - 1 && j == x2 - 1)
                 bc_printA("j");
-            else if ((i == y1 || i == y2 - 1) && j > x1 && j < x2 - 1)
+            else if ((i == 0 || i == y2 - 1) && j > 0 && j < x2 - 1)
                 bc_printA("q");
-            else if (i > y1 && i < y2 - 1 && j == x1)
+            else if (i > 0 && i < y2 - 1 && j == 0)
                 bc_printA("x");
-            else if (i > y1 && i < y2 - 1 && j == x2 - 1)
+            else if (i > 0 && i < y2 - 1 && j == x2 - 1)
                 bc_printA("x\n");
             else
                 write(1, " ", sizeof(char));
@@ -41,7 +42,7 @@ int bc_printbigchar(int *big, int x, int y, enum colors fgcolor, enum colors bgc
     mt_setbgcolor(bgcolor);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
-            mt_gotoXY(x + i, y + j);
+            mt_gotoXY(x + j, y + i);
             int value;
             bc_getbigcharpos(big, j, i, &value);
             if (!value)
