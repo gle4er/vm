@@ -74,7 +74,7 @@ int sc_regSet(int regist, int value)
 {
     if (regist >= 0x01 && regist <= 0x10) {
         if (value == 0)
-            reg_flag &= regist;
+            reg_flag &= ~regist;
         else if (value == 1)
             reg_flag |= regist;
         else {
