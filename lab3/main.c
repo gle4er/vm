@@ -81,6 +81,12 @@ void print_keys()
     mt_gotoXY(52, 13);
     char tmp[] = " Keys: ";
     write(1, tmp, strlen(tmp));
+    char *tmp1[] = {"l - load", "s - save", "r - run", "t - step", "i - reset",
+        "F5 - accumulator", "F6 - instructionCounter"};
+    for (int i = 0; i < 7; i++) {
+        mt_gotoXY(52, 14 + i);
+        write(1, tmp1[i], strlen(tmp1[i]));
+    }
 }
 
 int main()
@@ -90,7 +96,7 @@ int main()
     alph = (int*) malloc(sizeof(int) * 2 * 17);
     if (bc_bigcharread(fd, alph, 17, &cnt) == -1)
         return -1;
-    mt_clrscr();
+    *mt_clrscr();
     print_mem();
     print_accum();
     print_instcnt();
@@ -98,6 +104,7 @@ int main()
     print_flg();
     print_membc();
     print_keys();
+    printf("\n");
     printf("\n");
     printf("\n");
     return 0;
