@@ -1,6 +1,8 @@
 #ifndef RK_H
 #define RK_H
 
+#include <termios.h>
+
 struct termios def;
 struct termios custom;
 
