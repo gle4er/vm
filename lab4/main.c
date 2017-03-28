@@ -16,7 +16,6 @@ void print_mem(int *x, int *y)
     mt_gotoXY(30, 0);
     char tmp[] = " Memory ";
     write(1, tmp, sizeof(tmp));
-    int flg = 0;
     for (int i = 0; i < 100; i++) {
         mt_gotoXY(2 + 6 * (i / 10), 2 + (i % 10));
         if (*x > 9)
@@ -27,18 +26,22 @@ void print_mem(int *x, int *y)
             *y = 0;
         if (*y < 0)
             *y = 9;
-        if (i / 10 == *x && i % 10 == *y) {
+        if (i / 10 == *y && i % 10 == *x)
             mt_setbgcolor(red);
-            flg++;
-        }
         int command, operand, value;
         sc_memoryGet(i, &value);
         sc_commandDecode(value, &command, &operand);
-        char tmp1[7]; 
-        sprintf(tmp1, "%x:%x", command, operand);
-        write(1, tmp1, sizeof(tmp1));
-        if (flg)
-            mt_setbgcolor(deflt);
+        char tmp1[10]; 
+        if (command < 16 && operand < 16)
+            sprintf(tmp1, "0%x:0%x", command, operand);
+        else if (command < 16 && operand >= 16)
+            sprintf(tmp1, "0%x:%x", command, operand);
+        else if (command >= 16 && operand < 16)
+            sprintf(tmp1, "%x:0%x", command, operand);
+        else
+            sprintf(tmp1, "%x:%x", command, operand);
+        write(1, tmp1, strlen(tmp1));
+        mt_setbgcolor(deflt);
     }
 }
 
@@ -81,16 +84,25 @@ void print_flg()
     mt_gotoXY(69, 10);
     char tmp[] = " Flags ";
     write(1, tmp, strlen(tmp));
-    char tmp1[] = "O Z M F C";
+    char tmp1[] = "OZMFC";
     mt_gotoXY(67, 11);
-    write(1, tmp1, strlen(tmp1));
+    for (int i = 0; i < 5; i++) {
+        int value;
+        sc_regGet(1 << i, &value);
+        if (value)
+            mt_setfgcolor(red);
+        char tmp2[3];
+        sprintf(tmp2, "%c ", tmp1[i]);
+        write(1, tmp2, strlen(tmp2));
+        mt_setfgcolor(deflt);
+    }
 }
 
 void print_membc(int x, int y)
 {
     bc_box(1, 13, 50, 10);
     int value, command, operand;
-    sc_memoryGet(10 * x + y, &value);
+    sc_memoryGet(10 * y + x, &value);
     sc_commandDecode(value, &command, &operand);
     int big[] = {alph[command / 16 * 2], alph[command / 16 * 2 + 1]};
     bc_printbigchar(big, 2 + 10 * 0, 14, deflt, deflt);

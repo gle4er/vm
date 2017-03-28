@@ -60,7 +60,7 @@ int mt_setfgcolor(enum colors colors)
 
 int mt_setbgcolor(enum colors colors)
 {
-    if ((int)colors < 0 || (int)colors >= deflt)
+    if ((int)colors < 0 || (int)colors > deflt)
         return -1;
     if ((int)colors == deflt) {
         write(1, "\e[0m", strlen("\e[0m"));

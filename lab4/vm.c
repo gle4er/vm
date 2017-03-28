@@ -92,7 +92,6 @@ int sc_commandEncode(int command, int operand, int *value)
         else 
             return WRONG_OPERAND;
     } else {
-        sc_regSet(COMMAND_ERR, 1);
         return WRONG_COMMAND;
     }
     return OK;
@@ -102,13 +101,13 @@ int sc_commandDecode(int value, int *command, int *operand)
 {
     *command = (value >> 7);
     *operand = value & (~(*command << 7));
-    if (*command >= 10 && *command <= 76 && *operand == 0) {
-        if (*operand >= 0 && *operand < 128)
+    if (*command >= 10 && *command <= 76) {
+        if (*operand >= 0 && *operand < 128) {
             return OK;
+        }
         else
             return WRONG_OPERAND;
     } else {
-        sc_regSet(COMMAND_ERR, 1);
         return WRONG_COMMAND;
     }
 }
