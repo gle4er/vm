@@ -96,7 +96,7 @@ int main()
     alph = (int*) malloc(sizeof(int) * 2 * 17);
     if (bc_bigcharread(fd, alph, 17, &cnt) == -1)
         return -1;
-    *mt_clrscr();
+    mt_clrscr();
     print_mem();
     print_accum();
     print_instcnt();
