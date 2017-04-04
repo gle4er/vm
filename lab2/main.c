@@ -13,5 +13,6 @@ int main()
     printf("Valerie Funtikoffa\n");
     mt_getscreensize(&rows, &cols);
     mt_gotoXY(cols, rows);
+    printf(" ");
     return 0;
 }
