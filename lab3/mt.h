@@ -3,7 +3,7 @@
 
 enum colors {
     black = 0, red, green, yellow, blue, 
-    purple, cyan, white, MAX_COLORS    
+    purple, cyan, white, deflt
 } colors;
 
 int mt_clrscr();

@@ -45,8 +45,12 @@ int mt_getscreensize(int *rows, int *cols)
 
 int mt_setfgcolor(enum colors colors)
 {
-    if ((int)colors < 0 || (int)colors >= MAX_COLORS)
+    if ((int)colors < 0 || (int)colors > deflt)
         return -1;
+    if ((int)colors == deflt) {
+        write(1, "\e[0m", strlen("\e[0m"));
+        return 0;
+    }
     int color = (int)colors;
     char buf[8];
     sprintf(buf, "\E[3%dm", color);
@@ -56,8 +60,12 @@ int mt_setfgcolor(enum colors colors)
 
 int mt_setbgcolor(enum colors colors)
 {
-    if ((int)colors < 0 || (int)colors >= MAX_COLORS)
+    if ((int)colors < 0 || (int)colors > deflt)
         return -1;
+    if ((int)colors == deflt) {
+        write(1, "\e[0m", strlen("\e[0m"));
+        return 0;
+    }
     int color = (int)colors;
     char buf[8];
     sprintf(buf, "\E[4%dm", color);

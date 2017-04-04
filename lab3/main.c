@@ -69,10 +69,10 @@ void print_membc()
 {
     bc_box(1, 13, 50, 10);
     int big[] = {alph[16 * 2], alph[16 * 2 + 1]};
-    bc_printbigchar(big, 2, 14, white, black);
+    bc_printbigchar(big, 2, 14, deflt, deflt);
     int big1[] = {alph[9 * 2], alph[9 * 2 + 1]};
     for (int i = 0; i < 4; i++)
-        bc_printbigchar(big1, 2 + 10 * (i + 1), 14, white, black);
+        bc_printbigchar(big1, 2 + 10 * (i + 1), 14, deflt, deflt);
 }
 
 void print_keys()
@@ -107,5 +107,6 @@ int main()
     printf("\n");
     printf("\n");
     printf("\n");
+    mt_setfgcolor(deflt);
     return 0;
 }

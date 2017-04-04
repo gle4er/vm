@@ -52,8 +52,8 @@ int bc_printbigchar(int *big, int x, int y, enum colors fgcolor, enum colors bgc
         }
         write(1, "\n", 1);
     }
-    mt_setbgcolor(black);
-    mt_setfgcolor(white);
+    mt_setbgcolor(deflt);
+    mt_setfgcolor(deflt);
     return 0;
 }
 
