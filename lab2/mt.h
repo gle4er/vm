@@ -1,15 +1,9 @@
 #ifndef MYTERM_H
 #define MYTERM_H
 
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-
 enum colors {
     black = 0, red, green, yellow, blue, 
-    purple, cyan, white, MAX_COLORS    
+    purple, cyan, white, deflt
 } colors;
 
 int mt_clrscr();
