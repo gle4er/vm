@@ -45,14 +45,13 @@ int sc_memorySave(char *filename)
 int sc_memoryLoad(char *filename)
 {
     FILE *file = fopen(filename, "r");
-    int code = OK;
-    if (!file) 
-        code = OPEN_ERR;
+    if (file == NULL)
+        return OPEN_ERR;
     sc_memoryInit();
     if (!fread(memory, sizeof(int), 100, file)) 
-        code = READ_ERR;
+        return READ_ERR;
     fclose(file);
-    return code;
+    return OK;
 }
 
 int sc_regInit()
@@ -104,10 +103,12 @@ int sc_commandDecode(int value, int *command, int *operand)
     if (*command >= 10 && *command <= 76) {
         if (*operand >= 0 && *operand < 128) {
             return OK;
-        }
-        else
+        } else {
+            *operand = 0;
             return WRONG_OPERAND;
+        }
     } else {
+        *command = 0;
         return WRONG_COMMAND;
     }
 }

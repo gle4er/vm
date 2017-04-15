@@ -21,6 +21,8 @@ int rk_readkey(enum keys *key)
         *key = i;
     if (!strcmp(tmp, "t"))
         *key = t;
+    if (!strcmp(tmp, "r"))
+        *key = r;
     if (!strcmp(tmp, "\E[15~"))
         *key = f5;
     if (!strcmp(tmp, "\E[17~"))
@@ -33,6 +35,8 @@ int rk_readkey(enum keys *key)
         *key = right;
     if (!strcmp(tmp, "\E[D"))
         *key = left;
+    if (!strcmp(tmp, "\n"))
+        *key = enter;
     if (tcsetattr(1, TCSANOW, &def))
         return -1;
     return 0;

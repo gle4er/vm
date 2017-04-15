@@ -7,7 +7,7 @@ struct termios def;
 struct termios custom;
 
 enum keys {
-    up, down, left, right, f5, f6, q, l, s, i, t
+    up, down, left, right, f5, f6, q, l, s, i, t, r, enter, none
 } keys;
 
 int rk_readkey(enum keys *key);
