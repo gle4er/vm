@@ -13,6 +13,14 @@ int *alph = NULL;
 
 void print_mem()
 {
+    int freq_flg = 0,
+        ins_cnt = 0;
+    sc_regGet(FREQ_ERR, &freq_flg);
+    if (!freq_flg) {
+        sc_instGet(&ins_cnt);
+        x = ins_cnt % 10;
+        y = ins_cnt / 10;
+    }
     for (int i = 0; i < 100; i++) {
         mt_gotoXY(2 + 6 * (i / 10), 2 + (i % 10));
         if (x > 9)
@@ -164,6 +172,8 @@ void save_mem()
 
 void input_plz(int pos)
 {
+    rk_mytermrestore(); //чтобы ввод работал
+    sc_regSet(FREQ_ERR, 1);
     bc_box(20, 6, 20, 5);
     mt_gotoXY(21, 7);
     write(1, "Input value (dec)\n", strlen("Input value (dec)\n"));
@@ -173,10 +183,13 @@ void input_plz(int pos)
     int operand = atoi(tmp);
     sc_memorySet(pos, operand);
     refresh();
+    sc_regSet(FREQ_ERR, 0);
+    rk_mytermsave();
 }
 
 void output(int pos)
 {
+    sc_regSet(FREQ_ERR, 1);
     bc_box(20, 6, 20, 5);
     mt_gotoXY(23, 7);
     int value;
@@ -189,7 +202,8 @@ void output(int pos)
     write(1, "OK", strlen("OK"));
     mt_setbgcolor(deflt);
     mt_gotoXY(30, 9);
-    read(1, NULL, 1);
+    read(1, tmp, 1);
+    sc_regSet(FREQ_ERR, 0);
 }
 
 void set_accum()
@@ -231,15 +245,6 @@ void set_mem()
     int tmp1 = atoi(tmp);
     sc_memorySet(10 * y + x, tmp1);
     refresh();
-}
-
-void step()
-{
-    CU();
-    int inst_curr = 0;
-    sc_instGet(&inst_curr);
-    y = inst_curr / 10;
-    x = inst_curr % 10;
 }
 
 void init()
@@ -326,9 +331,10 @@ void key_handler(int *exit)
         sc_regSet(FREQ_ERR, tmp);
     }
     if (key == t) {
-        sc_regSet(FREQ_ERR, 1);
-        step();
+        sc_regSet(FREQ_ERR, 0);
+        CU();
         interface();
+        sc_regSet(FREQ_ERR, 1);
     }
     if (key == enter)
         set_mem();

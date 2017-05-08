@@ -208,6 +208,7 @@ int JZ(int operand)
 int HALT()
 {
     sc_regSet(FREQ_ERR, 1);
+    sc_instSet(0);
     return 0;
 }
 

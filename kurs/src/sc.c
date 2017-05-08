@@ -1,4 +1,5 @@
 #include "../include/sc.h"
+#include "../include/gui.h"
 #include "../include/alu.h"
 
 int sc_memoryInit()
@@ -177,4 +178,5 @@ void CU()
         return;
     }
     sc_instSet(++inst_curr);
+    interface();
 }

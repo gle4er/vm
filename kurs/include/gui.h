@@ -20,7 +20,6 @@ void output(int pos);
 void set_accum();
 void set_instcnt();
 void set_mem();
-void step();
 void init();
 void refresh();
 void key_handler();
