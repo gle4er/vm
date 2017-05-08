@@ -30,7 +30,7 @@ void translating(const char *filename)
             operand = 0,
             value = 0;
         fscanf(input, "%s", command);
-        if (!feof(input))
+        if (feof(input))
             break;
         if (!strcmp(command, "READ")) 
             cmd = 10;
