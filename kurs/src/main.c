@@ -13,10 +13,8 @@ struct itimerval nval, oval;
 
 void sighandler(int signum)
 {
-    if (signum == SIGALRM) {
+    if (signum == SIGALRM) 
         CU();
-        interface();
-    }
 }
 
 int main()

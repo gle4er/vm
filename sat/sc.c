@@ -1,5 +1,4 @@
-#include "../include/sc.h"
-#include "../include/alu.h"
+#include "sc.h"
 
 int sc_memoryInit()
 {
@@ -31,7 +30,7 @@ int sc_memoryGet(int address, int *value)
     }
 }
 
-int sc_memorySave(char *filename)
+int sc_memorySave(const char *filename)
 {
     int code = OK;
     FILE *file = fopen(filename, "w");
@@ -43,7 +42,7 @@ int sc_memorySave(char *filename)
     return code;
 }
 
-int sc_memoryLoad(char *filename)
+int sc_memoryLoad(const char *filename)
 {
     FILE *file = fopen(filename, "r");
     if (file == NULL)
@@ -86,7 +85,7 @@ int sc_regGet(int regist, int *value)
 
 int sc_commandEncode(int command, int operand, int *value)
 {
-    if (command >= 10 && command <= 76) {
+    if ((command >= 10 && command <= 76) || command == 0) {
         if (operand >= 0 && operand < 128)
             *value = (command << 7) | operand;
         else if (operand > -128 && operand < 0) {
@@ -147,30 +146,4 @@ int sc_accumSet(int value)
     }
     accum = value;
     return OK;
-}
-
-void CU()
-{
-    int inst_curr = 0;
-    sc_instGet(&inst_curr);
-    int memory_curr;
-    sc_memoryGet(inst_curr, &memory_curr);
-    if (!memory_curr)
-        return;
-    int command = 0,
-        operand = 0,
-        flg = 0;
-    sc_commandDecode(memory_curr, &command, &operand);
-    sc_regGet(OVERFLOW, &flg);
-    if (flg) {
-        sc_regSet(FREQ_ERR, 1);
-        return;
-    }
-    ALU(command, operand);
-    sc_regGet(COMMAND_ERR, &flg);
-    if (flg) {
-        sc_regSet(FREQ_ERR, 1);
-        return;
-    }
-    sc_instSet(++inst_curr);
 }

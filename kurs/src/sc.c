@@ -37,7 +37,7 @@ int sc_memorySave(char *filename)
     FILE *file = fopen(filename, "w");
     if (!file) 
         code = OPEN_ERR;
-    if (!fwrite(memory, sizeof(int), 100, file)) 
+    if (!fwrite(memory, 4, 100, file)) 
         code = WRITE_ERR;
     fclose(file);
     return code;
@@ -49,7 +49,7 @@ int sc_memoryLoad(char *filename)
     if (file == NULL)
         return OPEN_ERR;
     sc_memoryInit();
-    if (!fread(memory, sizeof(int), 100, file)) 
+    if (!fread(memory, 4, 100, file)) 
         return READ_ERR;
     fclose(file);
     return OK;
@@ -151,6 +151,10 @@ int sc_accumSet(int value)
 
 void CU()
 {
+    int freq_flg = 0;
+    sc_regGet(FREQ_ERR, &freq_flg);
+    if (freq_flg)
+        return;
     int inst_curr = 0;
     sc_instGet(&inst_curr);
     int memory_curr;

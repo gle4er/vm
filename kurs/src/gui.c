@@ -165,11 +165,11 @@ void save_mem()
 void input_plz(int pos)
 {
     bc_box(20, 6, 20, 5);
-    mt_gotoXY(23, 7);
+    mt_gotoXY(21, 7);
     write(1, "Input value (dec)\n", strlen("Input value (dec)\n"));
-    char tmp[4] = "\0";
+    char tmp[10] = "\0";
     mt_gotoXY(21, 9);
-    read(1, tmp, 4);
+    read(1, tmp, 10);
     int operand = atoi(tmp);
     sc_memorySet(pos, operand);
     refresh();
@@ -255,7 +255,7 @@ void init()
     sc_regSet(OVERFLOW, 0);
     sc_regSet(ZERO_ERR, 0);
     sc_regSet(OUT_OF_MEMORY, 0);
-    sc_regSet(FREQ_ERR, 0);
+    sc_regSet(FREQ_ERR, 1);
     sc_regSet(COMMAND_ERR, 0);
     sc_memoryInit();
     sc_instSet(0);
@@ -323,7 +323,7 @@ void key_handler(int *exit)
         int tmp;
         sc_regGet(FREQ_ERR, &tmp);
         tmp = (tmp == 1) ? 0 : 1;
-        sc_regSet(FREQ_ERR, 1);
+        sc_regSet(FREQ_ERR, tmp);
     }
     if (key == t) {
         sc_regSet(FREQ_ERR, 1);

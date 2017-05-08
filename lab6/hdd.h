@@ -2,26 +2,35 @@
 #define HDD_H
 
 typedef struct CHS {
-    short cyl; //10
-    char head; //4
-    char sec; //6
+    unsigned short cyl; //10
+    unsigned short head; //4
+    unsigned short sec; //6
 } tCHS;
 
 typedef struct ECHS {
-    short cyl; //10
-    char head; //8
-    char sec; //6
+    unsigned short cyl; //10
+    unsigned short head; //8
+    unsigned short sec; //6
 } tLARGE;
 
 typedef struct IDECHS {
     unsigned short cyl; //16
-    char head; //4
-    unsigned char sec; //8
+    unsigned short head; //4
+    unsigned short sec; //8
 } tIDECHS;
 
 typedef struct LBA {
     unsigned int lba; //32
 } tLBA;
+
+typedef struct PART {
+    int activ;
+    tCHS beg;
+    int os;
+    tCHS end;
+    tLBA lba_beg;
+    int size;
+} tPART;
 
 int g_lba2chs(tLBA orig, tCHS *dest);
 int g_lba2large(tLBA orig, tLARGE *dest);

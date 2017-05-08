@@ -17,24 +17,71 @@ void load_file(const char *filename)
 
 void translating(const char *filename)
 {
-    FILE *output = NULL;
-    if ((output = fopen(filename, "w")) == NULL) {
-        fprintf(stderr, "Cannot setting output file\n");
-        exit(EXIT_FAILURE);
-    }
-    for (int i = 0; feof(input); i++) {
-        int inst_cnt = 0;
-        fscanf(input, "%d", &inst_cnt);
-        char command[10] = "\0";
-        fscanf(input, "%s", command);
-        if (strcmp(command, "READ")) {
-            int dist = 0;
-            fscanf(input, "%d", &dist);
-            int value = 0;
-            sc_commandEncode(10, dist, &value);
-            fprintf(output, "%d", value);
+    int i, 
+        flg = 0;
+    for (i = 0; !feof(input); i++) {
+        int tmp = 0;
+        if (!fscanf(input, "%d", &tmp)) {
+            flg = 1;
+            break;
         }
+        char command[10] = "\0";
+        int cmd = 0,
+            operand = 0,
+            value = 0;
+        fscanf(input, "%s", command);
+        if (!feof(input))
+            break;
+        if (!strcmp(command, "READ")) 
+            cmd = 10;
+        else if (!strcmp(command, "WRITE")) 
+            cmd = 11;
+        else if (!strcmp(command, "LOAD")) 
+            cmd = 20;
+        else if (!strcmp(command, "STORE")) 
+            cmd = 21;
+        else if (!strcmp(command, "ADD")) 
+            cmd = 30;
+        else if (!strcmp(command, "SUB")) 
+            cmd = 31;
+        else if (!strcmp(command, "DIVIDE")) 
+            cmd = 32;
+        else if (!strcmp(command, "MUL")) 
+            cmd = 33;
+        else if (!strcmp(command, "JUMP")) 
+            cmd = 40;
+        else if (!strcmp(command, "JNEG")) 
+            cmd = 41;
+        else if (!strcmp(command, "JZ")) 
+            cmd = 42;
+        else if (!strcmp(command, "HALT")) 
+            cmd = 43;
+        else if (!strcmp(command, "=")) 
+            cmd = 0;
+        else {
+            flg = 2;
+            break;
+        }
+        if (!fscanf(input, "%d", &operand)) {
+            flg = 3;
+            break;
+        }
+        if (sc_commandEncode(cmd, operand, &value)) {
+            flg = 4;
+            break;
+        }
+        sc_memorySet(i, value);
     }
+    if (!flg)
+        sc_memorySave(filename);
+    if (flg == 1) 
+        fprintf(stderr, "line %d: expected num of line\n", ++i);
+    if (flg == 2)
+        fprintf(stderr, "line %d: wrong command\n", ++i);
+    if (flg == 3)
+        fprintf(stderr, "line %d: wrong operand\n", ++i);
+    if (flg == 4)
+        fprintf(stderr, "line %d: wrong command or operand\n", ++i);
 }
 
 int main(int argc, const char **argv)
@@ -43,6 +90,7 @@ int main(int argc, const char **argv)
         fprintf(stderr, "Usage: %s input.sa output.o\n", argv[0]);
         exit(EXIT_FAILURE);
     }
+    sc_memoryInit();
     load_file(argv[1]);
     translating(argv[2]);
     return 0;

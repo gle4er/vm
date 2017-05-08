@@ -43,7 +43,7 @@ int MOVA(int operand);
 int MOVR(int operand);
 int MOVCA(int operand);
 int MOVCR(int operand);
-int ADDC(int operand);
-int SUBC(int operand);
+int ADDC1(int operand);
+int SUBC1(int operand);
 
 #endif 

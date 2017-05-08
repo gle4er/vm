@@ -328,10 +328,24 @@ int JNP(int operand)
     return 0;
 }
 
-int CHL(int operand); //сдвиг содержимого самой ячейки или операнды?
-int SHR(int operand);
-int RCL(int operand);
-int RCR(int operand);
+int CHL(int operand)
+{
+    return 0;
+}
+//сдвиг содержимого самой ячейки или операнды?
+int SHR(int operand)
+{
+    return 0;
+}
+int RCL(int operand)
+{
+    return 0;
+}
+
+int RCR(int operand)
+{
+    return 0;
+}
 
 int NEG(int operand)
 {
@@ -344,12 +358,35 @@ int NEG(int operand)
     return 0;
 }
 
-int ADDC(int operand);
-int SUBC(int operand);
-int LOGLC(int operand);
-int LOGRC(int operand);
-int RCCL(int operand);
-int RCCR(int operand);
+int ADDC(int operand)
+{
+    return 0;
+}
+
+int SUBC(int operand)
+{
+    return 0;
+}
+
+int LOGLC(int operand)
+{
+    return 0;
+}
+
+int LOGRC(int operand)
+{
+    return 0;
+}
+
+int RCCL(int operand)
+{
+    return 0;
+}
+
+int RCCR(int operand)
+{
+    return 0;
+}
 
 int MOVA(int operand)
 {
@@ -395,6 +432,13 @@ int MOVCR(int operand)
     return 0;
 }
 
-int ADDC(int operand);
-int SUBC(int operand);
+int ADDC1(int operand)
+{
+    return 0;
+}
+
+int SUBC2(int operand)
+{
+    return 0;
+}
 

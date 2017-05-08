@@ -20,9 +20,9 @@ int g_lba2large(tLBA orig, tLARGE *dest)
 
 int g_lba2idechs(tLBA orig, tIDECHS *dest)
 {
-    dest->cyl = orig.lba / 15 / 255;
-    dest->head = orig.lba / 15 % 255;
-    dest->sec = orig.lba % 255 + 1;
+    dest->cyl = orig.lba / 16 / 256;
+    dest->head = orig.lba / 16 % 256;
+    dest->sec = orig.lba % 256 + 1;
     return 0;
 }
 
@@ -90,4 +90,20 @@ int g_idechs2lba(tIDECHS orig, tLBA *dest)
 {
     dest->lba = (orig.head + 15 * orig.cyl) * 255 + orig.sec - 1;
     return 0;
+}
+
+int a_lba2chs (tCHS geometry, tLBA orig, tCHS *dest)
+{
+	int tmp;
+	dest->cyl = (orig.lba / geometry.sec) / geometry.head;
+    if (dest->cyl > geometry.cyl) {
+        dest->cyl = geometry.cyl;
+        dest->head = geometry.head;
+        dest->sec = geometry.sec;
+        return 0;
+    }
+	tmp = orig.lba % (geometry.head * geometry.sec);
+	dest->head = tmp / geometry.sec;
+	dest->sec = tmp % geometry.sec + 1;
+	return 0;
 }
