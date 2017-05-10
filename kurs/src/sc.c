@@ -87,10 +87,11 @@ int sc_regGet(int regist, int *value)
 
 int sc_commandEncode(int command, int operand, int *value)
 {
-    if (command >= 10 && command <= 76) {
+    if ((command >= 10 && command <= 76) || command == 0) {
         if (operand >= 0 && operand < 128)
             *value = (command << 7) | operand;
         else if (operand > -128 && operand < 0) {
+            operand *= -1;
             *value = (command << 7) | operand;
             *value |= 1 << 14;
         } else {
@@ -104,9 +105,16 @@ int sc_commandEncode(int command, int operand, int *value)
 
 int sc_commandDecode(int value, int *command, int *operand)
 {
+    int flg = 0;
+    if (value & (1 << 14)) {
+        flg++;
+        value = value & ~(1 << 14);
+    }
     *command = (value >> 7);
     *operand = value & (~(*command << 7));
-    if (*command >= 10 && *command <= 76) {
+    if (flg)
+        *operand *= -1;
+    if ((*command >= 10 && *command <= 76) || *command == 0) {
         if (*operand > -128 && *operand < 128) {
             return OK;
         } else {
@@ -142,10 +150,6 @@ int sc_accumGet(int *value)
 
 int sc_accumSet(int value)
 {
-    if (value > 127) {
-        sc_regSet(OUT_OF_MEMORY, 1);
-        return WRONG_VALUE;
-    }
     accum = value;
     return OK;
 }
@@ -177,6 +181,8 @@ void CU()
         sc_regSet(FREQ_ERR, 1);
         return;
     }
-    sc_instSet(++inst_curr);
+    sc_regGet(FREQ_ERR, &flg);
+    if (!inst_curr || !flg)
+        sc_instSet(++inst_curr);
     interface();
 }

@@ -36,6 +36,10 @@ void print_mem()
         int command, operand, value;
         sc_memoryGet(i, &value);
         sc_commandDecode(value, &command, &operand);
+        if (operand < 0) {
+            operand *= -1;
+            command |= (1 << 7);
+        }
         char tmp1[10]; 
         if (command < 16 && operand < 16)
             sprintf(tmp1, "0%x:0%x", command, operand);
@@ -56,7 +60,7 @@ void print_accum()
     int acc = 0;
     sc_accumGet(&acc);
     char tmp[4];
-    sprintf(tmp, "%x", acc);
+    sprintf(tmp, "%d", acc);
     write(1, tmp, strlen(tmp));
 }
 
@@ -181,7 +185,9 @@ void input_plz(int pos)
     mt_gotoXY(21, 9);
     read(1, tmp, 10);
     int operand = atoi(tmp);
-    sc_memorySet(pos, operand);
+    int value = 0;
+    sc_commandEncode(0, operand, &value);
+    sc_memorySet(pos, value);
     refresh();
     sc_regSet(FREQ_ERR, 0);
     rk_mytermsave();
@@ -192,10 +198,11 @@ void output(int pos)
     sc_regSet(FREQ_ERR, 1);
     bc_box(20, 6, 20, 5);
     mt_gotoXY(23, 7);
-    int value;
+    int value, operand, cmd;
     sc_memoryGet(pos, &value);
+    sc_commandDecode(value, &cmd, &operand);
     char tmp[4] = "\0";
-    sprintf(tmp, "%d", value);
+    sprintf(tmp, "%d", operand);
     write(1, tmp, strlen(tmp));
     mt_gotoXY(29, 9);
     mt_setbgcolor(red);

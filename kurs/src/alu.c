@@ -12,7 +12,7 @@ int ALU(int command, int operand)
     else if (command == 20)
         return LOAD(operand);
     else if (command == 21)
-        return WRITE(operand);
+        return STORE(operand);
     else if (command == 30)
         return ADD(operand);
     else if (command == 31)
@@ -88,12 +88,6 @@ int ALU(int command, int operand)
 int READ(int operand)
 {
     input_plz(operand);
-    int value = 0;
-    sc_memoryGet(operand, &value);
-    if (value > 127 || value < 0) {
-        sc_regSet(OUT_OF_MEMORY, 1);
-        return -1;
-    }
     return 0;
 }
 
@@ -108,7 +102,7 @@ int LOAD(int operand)
     int value = 0;
     sc_memoryGet(operand, &value);
     int a = 0, 
-        tmp;
+        tmp = 0;
     sc_commandDecode(value, &tmp, &a);
     sc_accumSet(a);
     return 0;
@@ -333,11 +327,12 @@ int CHL(int operand)
 {
     return 0;
 }
-//сдвиг содержимого самой ячейки или операнды?
+
 int SHR(int operand)
 {
     return 0;
 }
+
 int RCL(int operand)
 {
     return 0;
