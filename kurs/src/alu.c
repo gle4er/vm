@@ -101,10 +101,7 @@ int LOAD(int operand)
 {
     int value = 0;
     sc_memoryGet(operand, &value);
-    int a = 0, 
-        tmp = 0;
-    sc_commandDecode(value, &tmp, &a);
-    sc_accumSet(a);
+    sc_accumSet(value);
     return 0;
 }
 
@@ -112,20 +109,14 @@ int STORE(int operand)
 {
     int a = 0;
     sc_accumGet(&a);
-    int tmp = 0, 
-        value = 0;
-    sc_commandEncode(tmp, a, &value);
-    sc_memorySet(operand, value);
+    sc_memorySet(operand, a);
     return 0;
 }
 
 int ADD(int operand)
 {
-    int value = 0;
-    sc_memoryGet(operand, &value);
-    int tmp = 0, 
-        a = 0;
-    sc_commandDecode(value, &tmp, &a);
+    int a = 0;
+    sc_memoryGet(operand, &a);
     int b = 0;
     sc_accumGet(&b);
     a += b;
@@ -135,11 +126,8 @@ int ADD(int operand)
 
 int SUB(int operand)
 {
-    int value = 0;
-    sc_memoryGet(operand, &value);
-    int tmp = 0, 
-        a = 0;
-    sc_commandDecode(value, &tmp, &a);
+    int a = 0;
+    sc_memoryGet(operand, &a);
     int b = 0;
     sc_accumGet(&b);
     a -= b;
@@ -149,11 +137,8 @@ int SUB(int operand)
 
 int DIVIDE(int operand)
 {
-    int value = 0;
-    sc_memoryGet(operand, &value);
-    int tmp = 0, 
-        a = 0;
-    sc_commandDecode(value, &tmp, &a);
+    int a = 0;
+    sc_memoryGet(operand, &a);
     int b = 0;
     sc_accumGet(&b);
     a /= b;
@@ -163,11 +148,8 @@ int DIVIDE(int operand)
 
 int MUL(int operand)
 {
-    int value = 0;
-    sc_memoryGet(operand, &value);
-    int tmp = 0, 
-        a = 0;
-    sc_commandDecode(value, &tmp, &a);
+    int a = 0;
+    sc_memoryGet(operand, &a);
     int b = 0;
     sc_accumGet(&b);
     a *= b;

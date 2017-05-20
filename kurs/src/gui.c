@@ -76,9 +76,95 @@ void print_instcnt()
 
 void print_operation()
 {
-    char tmp1[] = "+00 : 00";
+    int value = 0,
+        command = 0,
+        operand = 0,
+        pos = y * 10 + x;
+    sc_memoryGet(pos, &value);
+    sc_commandDecode(value, &command, &operand);
     mt_gotoXY(69, 8);
-    write(1, tmp1, sizeof(tmp1));
+    char mda[] = "               ";
+    write(1, mda, strlen(mda));
+    mt_gotoXY(69, 8);
+    if (command == 10)
+        write(1, "READ : ", 7);
+    else if (command == 11)
+        write(1, "WRITE : ", 8);
+    else if (command == 20)
+        write(1, "LOAD : ", 7);
+    else if (command == 21)
+        write(1, "STORE : ", 8);
+    else if (command == 30)
+        write(1, "ADD : ", 6);
+    else if (command == 31)
+        write(1, "SUB : ", 6);
+    else if (command == 32)
+        write(1, "DIVIDE : ", 9);
+    else if (command == 33)
+        write(1, "MUL : ", 6);
+    else if (command == 40)
+        write(1, "JUMP : ", 7);
+    else if (command == 41)
+        write(1, "JNEG : ", 7);
+    else if (command == 42)
+        write(1, "JZ : ", 5);
+    else if (command == 43)
+        write(1, "HALT : ", 7);
+    else if (command == 51)
+        write(1, "NOT : ", 6);
+    else if (command == 52)
+        write(1, "AND : ", 6);
+    else if (command == 53)
+        write(1, "OR : ", 5);
+    else if (command == 54)
+        write(1, "XOR : ", 6);
+    else if (command == 55)
+        write(1, "JNS : ", 6);
+    else if (command == 56)
+        write(1, "JC : ", 5);
+    else if (command == 57)
+        write(1, "JNC : ", 6);
+    else if (command == 58)
+        write(1, "JP : ", 5);
+    else if (command == 59)
+        write(1, "JNP : ", 6);
+    else if (command == 60)
+        write(1, "CHL : ", 6);
+    else if (command == 61)
+        write(1, "SHR : ", 6);
+    else if (command == 62)
+        write(1, "RCL : ", 6);
+    else if (command == 63)
+        write(1, "RCR : ", 6);
+    else if (command == 64)
+        write(1, "NEG : ", 6);
+    else if (command == 65)
+        write(1, "ADDC : ", 7);
+    else if (command == 66)
+        write(1, "SUBC : ", 7);
+    else if (command == 67)
+        write(1, "LOGLC : ", 8);
+    else if (command == 68)
+        write(1, "LOGRC : ", 8);
+    else if (command == 69)
+        write(1, "RCCL : ", 7);
+    else if (command == 70)
+        write(1, "RCCR : ", 7);
+    else if (command == 71)
+        write(1, "MOVA : ", 7);
+    else if (command == 72)
+        write(1, "MOVR : ", 7);
+    else if (command == 73)
+        write(1, "MOVCA : ", 8);
+    else if (command == 74)
+        write(1, "MOVCR : ", 8);
+    else if (command == 75)
+        write(1, "ADDC : ", 7);
+    else if (command == 76)
+        write(1, "SUBC : ", 7);
+    char tmp[5] = "\0";
+    sprintf(tmp, "%d", operand);
+    write(1, tmp, strlen(tmp));
 }
 
 void print_flg()
@@ -184,10 +270,8 @@ void input_plz(int pos)
     char tmp[10] = "\0";
     mt_gotoXY(21, 9);
     read(1, tmp, 10);
-    int operand = atoi(tmp);
-    int value = 0;
-    sc_commandEncode(0, operand, &value);
-    sc_memorySet(pos, value);
+    int mda = atoi(tmp);
+    sc_memorySet(pos, mda);
     refresh();
     sc_regSet(FREQ_ERR, 0);
     rk_mytermsave();
@@ -198,11 +282,10 @@ void output(int pos)
     sc_regSet(FREQ_ERR, 1);
     bc_box(20, 6, 20, 5);
     mt_gotoXY(23, 7);
-    int value, operand, cmd;
+    int value;
     sc_memoryGet(pos, &value);
-    sc_commandDecode(value, &cmd, &operand);
-    char tmp[4] = "\0";
-    sprintf(tmp, "%d", operand);
+    char tmp[10] = "\0";
+    sprintf(tmp, "%d", value);
     write(1, tmp, strlen(tmp));
     mt_gotoXY(29, 9);
     mt_setbgcolor(red);
