@@ -146,8 +146,5 @@ void CU()
     int inst_curr = 0;
     sc_instGet(&inst_curr);
     int memory_curr;
-    sc_memoryGet(inst_curr, &memory_curr);
-    if (!memory_curr)
-        return;
     sc_instSet(++inst_curr);
 }

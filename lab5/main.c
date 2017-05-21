@@ -25,18 +25,16 @@ void sighandler(int signum)
         sc_regGet(COMMAND_ERR, &comm_flg);
         sc_instGet(&inst_curr);
 
-        if (freq_flg || comm_flg)
-            run_flg = 0;
+        if (comm_flg)
+            sc_regSet(FREQ_ERR, 1);
 
-        if (run_flg) {
+        if (!freq_flg) {
             step();
             interface();
         }
 
-        int inst_new = 0;
-        sc_instGet(&inst_new);
-        if (!(inst_new - inst_curr))
-            run_flg = 0;
+        if (inst_curr == 99)
+            sc_regSet(FREQ_ERR, 1);
     }
 }
 

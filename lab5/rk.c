@@ -37,6 +37,8 @@ int rk_readkey(enum keys *key)
         *key = left;
     if (!strcmp(tmp, "\n"))
         *key = enter;
+    if (!strcmp(tmp, " "))
+        *key = space;
     if (tcsetattr(1, TCSANOW, &def))
         return -1;
     return 0;

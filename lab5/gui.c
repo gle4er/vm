@@ -48,7 +48,7 @@ void print_accum()
     int acc = 0;
     sc_accumGet(&acc);
     char tmp[4];
-    sprintf(tmp, "%x", acc);
+    sprintf(tmp, "%d", acc);
     write(1, tmp, strlen(tmp));
 }
 
@@ -64,9 +64,14 @@ void print_instcnt()
 
 void print_operation()
 {
-    char tmp1[] = "+00 : 00";
+	int tmp = 0;
+	sc_memoryGet(x + y * 10, &tmp);
+    char tmp1[10];
+    int cmd, opr;
+    sc_commandDecode(tmp, &cmd, &opr);
+    sprintf(tmp1, "%x:%x", cmd, opr);
     mt_gotoXY(69, 8);
-    write(1, tmp1, sizeof(tmp1));
+    write(1, tmp1, strlen(tmp1));
 }
 
 void print_flg()
@@ -225,12 +230,11 @@ void init()
     sc_regSet(OVERFLOW, 0);
     sc_regSet(ZERO_ERR, 0);
     sc_regSet(OUT_OF_MEMORY, 0);
-    sc_regSet(FREQ_ERR, 0);
+    sc_regSet(FREQ_ERR, 1);
     sc_regSet(COMMAND_ERR, 0);
     sc_memoryInit();
     sc_instSet(0);
     sc_accumSet(0);
-    run_flg = 0;
 
     mt_clrscr();
 }
@@ -266,6 +270,17 @@ void key_handler(int *exit)
 {
     enum keys key = none;
     rk_readkey(&key);
+    if (key == r) {
+        int tmp;
+        sc_regGet(FREQ_ERR, &tmp);
+        tmp = (tmp) ? 0 : 1;
+        sc_regSet(FREQ_ERR, tmp);
+    }
+
+    int freq_flg;
+    sc_regGet(FREQ_ERR, &freq_flg);
+    if (!freq_flg)
+        return;
 
     if (key == q)
         *exit = 1;
@@ -290,11 +305,6 @@ void key_handler(int *exit)
         set_accum();
     if (key == f6)
         set_instcnt();
-    if (key == r) {
-        sc_instSet(0);
-        x = 0, y = 0;
-        run_flg = 1;
-    }
     if (key == t)
         step();
     if (key == enter)
