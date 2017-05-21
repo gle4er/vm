@@ -388,6 +388,11 @@ void refresh()
 
 void key_handler(int *exit)
 {
+    int freq_flg;
+    sc_regGet(FREQ_ERR, &freq_flg);
+    if (!freq_flg)
+        return;
+
     enum keys key = none;
     rk_readkey(&key);
 
