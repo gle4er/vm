@@ -182,6 +182,7 @@ void CU()
         return;
     }
     sc_regGet(FREQ_ERR, &flg);
+    sc_instGet(&inst_curr);
     if (!inst_curr || !flg)
         sc_instSet(++inst_curr);
     interface();

@@ -390,12 +390,18 @@ void key_handler(int *exit)
 {
     int freq_flg;
     sc_regGet(FREQ_ERR, &freq_flg);
-    if (!freq_flg)
-        return;
-
     enum keys key = none;
     rk_readkey(&key);
 
+    if (key == r) {
+        int tmp;
+        sc_regGet(FREQ_ERR, &tmp);
+        tmp = (tmp == 1) ? 0 : 1;
+        sc_regSet(FREQ_ERR, tmp);
+    }
+
+    if (!freq_flg)
+        return;
     if (key == q)
         *exit = 1;
     if (key == l)
@@ -419,12 +425,6 @@ void key_handler(int *exit)
         set_accum();
     if (key == f6)
         set_instcnt();
-    if (key == r) {
-        int tmp;
-        sc_regGet(FREQ_ERR, &tmp);
-        tmp = (tmp == 1) ? 0 : 1;
-        sc_regSet(FREQ_ERR, tmp);
-    }
     if (key == t) {
         sc_regSet(FREQ_ERR, 0);
         CU();

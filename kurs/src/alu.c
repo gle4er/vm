@@ -159,7 +159,7 @@ int MUL(int operand)
 
 int JUMP(int operand)
 {
-    sc_instSet(operand);
+    sc_instSet(--operand);
     return 0;
 }
 
@@ -168,7 +168,7 @@ int JNEG(int operand)
     int tmp = 0;
     sc_accumGet(&tmp);
     if (tmp < 0)
-        sc_instSet(operand);
+        sc_instSet(--operand);
     return 0;
 }
 
@@ -177,7 +177,7 @@ int JZ(int operand)
     int tmp = 0;
     sc_accumGet(&tmp);
     if (tmp == 0)
-        sc_instSet(operand);
+        sc_instSet(--operand);
     return 0;
 }
 
