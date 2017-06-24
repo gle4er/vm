@@ -62,20 +62,32 @@ char *epx_to_rpn(char *calc)
             strcat(res, &tmp[0]);
             strcat(res, " ");
         }
-        else if (tmp[0] == '+' || tmp[0] == '-') {
-            int flg = 0;
-            for (int i = strlen(stack); i >= 0 && !flg; i--) {
-                if (stack[i] == '+' || stack[i] == '-') {
-                    char sign = stack[i];
-                    stack[i] = tmp[0];
-                    strcat(res, &sign);
-                    res[strlen(res) - 1] = '\0'; // костыль, тк добавляется два знака
-                    strcat(res, " ");
-                    flg++;
+        else if (tmp[0] == '+' || tmp[0] == '-' || tmp[0] == '*' 
+                || tmp[0] == '/' || tmp[0] == '(' || tmp[0] == ')') {
+            if (tmp[0] == '+' || tmp[0] == '-') {
+                for (int i = strlen(stack) - 1; i >= 0; i--) {
+                    if (stack[i] == '*' || stack[i] == '/' ||
+                            stack[i] == '+' || stack[i] == '-') {
+                        char sign = stack[i];
+                        stack[i] = '\0';
+                        strcat(res, &sign);
+                        if (strlen(stack) > 0)
+                            res[(strlen(res) - 1) - (strlen(stack) - 1)] = '\0'; // костыль, тк добавляется два знака
+                        strcat(res, " ");
+                    }
+                }
+            } 
+            else if (tmp[0] == '*' || tmp[0] == '/') {
+                for (int i = strlen(stack) - 1; i >= 0; i--) {
+                    if (stack[i] == '*' || stack[i] == '/') {
+                        char sign = stack[i];
+                        stack[i] = '\0';
+                        strcat(res, &sign);
+                        strcat(res, " ");
+                    }
                 }
             }
-            if (!flg)
-                strcat(stack, &tmp[0]);
+            strcat(stack, &tmp[0]);
         }
         else if (atoi(tmp)) {
             char new_var = 'z' - strlen(vars);
