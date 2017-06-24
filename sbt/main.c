@@ -55,8 +55,8 @@ int get_var_pos(char *vars, char var)
 char *epx_to_rpn(char *calc)
 {
     char *res = (char *) malloc(sizeof(*res) * 1000);
-    char stack[50];
-    char *tmp = strtok(calc, " ");
+    char stack[50] = "\0";
+    char *tmp = strtok(calc, " \n");
     while (tmp != NULL) {
         if (check_var(vars, tmp[0])) {
             strcat(res, &tmp[0]);
@@ -69,6 +69,8 @@ char *epx_to_rpn(char *calc)
                     char sign = stack[i];
                     stack[i] = tmp[0];
                     strcat(res, &sign);
+                    res[strlen(res) - 1] = '\0'; // костыль, тк добавляется два знака
+                    strcat(res, " ");
                     flg++;
                 }
             }
@@ -76,13 +78,19 @@ char *epx_to_rpn(char *calc)
                 strcat(stack, &tmp[0]);
         }
         else if (atoi(tmp)) {
-            char new_var = 'A' + strlen(vars);
+            char new_var = 'z' - strlen(vars);
             add_var(vars, new_var);
-            var_value[strlen(vars) - 1] = atoi(tmp);
-
+            var_value[strlen(vars) - 2] = atoi(tmp); // -2, тк добавляется какойт шлак /177
+            strcat(res, tmp);
+            strcat(res, " ");
         }
-        tmp = strtok(NULL, " ");
+        tmp = strtok(NULL, " \n");
     }
+    for (int i = strlen(stack) - 1; i >= 0; i--) {
+        strcat(res, &stack[i]);
+        strcat(res, " ");
+    }
+    res[strlen(res) - 1] = '\0';
     return res;
 }
 
