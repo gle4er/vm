@@ -9,7 +9,8 @@ char *vars;
 
 int asm_cnt = 0, // счётчик для асм-инструкций
     bas_cnt = 0, // тож, ток для басика
-    *count_cnt = 0,
+    tmp_cnt = 0, // счётчик временных переменных (константы)
+    *count_cnt = 0, // массив позиций (индекс - позиция в басике, значение - позиция в асме)
     *var_value = 0;
 
 const char command_id[][7] = {"REM", "INPUT", "PRINT", "GOTO", "IF", "LET", "END"}; 
@@ -51,16 +52,23 @@ int get_var_pos(char *vars, char var)
     return 99 - cnt;
 }
 
-char *epx_to_rpn(char *calc)
+void add_accum(char var) 
+{
+    int pos = get_var_pos(vars, var);
+    fprintf(output, "%d LOAD %d\n", asm_cnt, pos);
+    asm_cnt++;
+}
+
+char *epx_to_rpn(char *exp)
 {
     char *res = (char *) calloc(100, sizeof(*res));
     char stack[50] = "\0";
-    char *tmp = strtok(calc, " \n");
+    char *tmp = strtok(exp, " =\n");
     while (tmp != NULL) {
-        if (check_var(vars, tmp[0])) {
-            strcat(res, &tmp[0]);
-            strcat(res, " ");
-        }
+
+        if (check_var(vars, tmp[0])) 
+            strcat(res, tmp);
+
         else if (tmp[0] == '+' || tmp[0] == '-' || tmp[0] == '*' 
                 || tmp[0] == '/' || tmp[0] == '(' || tmp[0] == ')') {
 
@@ -73,7 +81,6 @@ char *epx_to_rpn(char *calc)
                         char sign[] = { stack[i], '\0' };
                         stack[i] = '\0';
                         strcat(res, sign);
-                        strcat(res, " ");
                     }
                 }
             } 
@@ -86,7 +93,6 @@ char *epx_to_rpn(char *calc)
                         char sign[] = { stack[i], '\0' };
                         stack[i] = '\0';
                         strcat(res, sign);
-                        strcat(res, " ");
                     }
                 }
             }
@@ -101,7 +107,6 @@ char *epx_to_rpn(char *calc)
                     char sign[] = { stack[i], '\0' };
                     stack[i] = '\0';
                     strcat(res, sign);
-                    strcat(res, " ");
                 }
             }
 
@@ -109,28 +114,106 @@ char *epx_to_rpn(char *calc)
         }
 
         else if (atoi(tmp)) {
-            char new_var = 'z' - strlen(vars);
+            char new_var = 'z' - tmp_cnt;
             add_var(vars, new_var);
             var_value[strlen(vars) - 1] = atoi(tmp); // -2, тк добавляется какойт шлак /177
             char fix_var[] = { new_var, '\0' };
             strcat(res, fix_var);
-            strcat(res, " ");
         }
-        tmp = strtok(NULL, " \n");
+        tmp = strtok(NULL, " =\n");
     }
-    for (int i = strlen(stack) - 1; i >= 0; i--) {
+    for (int i = strlen(stack) - 1; i >= 0; i--) 
         strcat(res, &stack[i]);
-        strcat(res, " ");
-    }
-    res[strlen(res) - 1] = '\0';
     printf("%s\n", res);
     return res;
 }
 
+void calculating(char *rpn)
+{
+    char stack[100] = "\0";
+    int pos = 0,
+        flg = 0; // добавили ли первое значение в акум
+    for (int i = 0; rpn[i]; i++) {
+        if (rpn[i] == '+') {
+            if (!flg) {
+                add_accum(stack[pos - 2]);
+                flg++;
+                for (int i = pos - 2; i < (int)strlen(stack); i++)
+                    stack[i] = stack[i + 1];
+            }
+            int var_pos = get_var_pos(vars, stack[pos - 2]);
+            fprintf(output, "%d ADD %d\n", asm_cnt, var_pos);
+            asm_cnt++;
+        }
+
+        else if (rpn[i] == '-') {
+            if (!flg) {
+                add_accum(stack[pos - 2]);
+                flg++;
+                for (int i = pos - 2; i < (int)strlen(stack); i++)
+                    stack[i] = stack[i + 1];
+            }
+            int var_pos = get_var_pos(vars, stack[pos - 2]);
+            fprintf(output, "%d SUB %d\n", asm_cnt, var_pos);
+            asm_cnt++;
+        }
+
+        else if (rpn[i] == '*') {
+            if (!flg) {
+                add_accum(stack[pos - 2]);
+                flg++;
+                for (int i = pos - 2; i < (int)strlen(stack); i++)
+                    stack[i] = stack[i + 1];
+            }
+            int var_pos = get_var_pos(vars, stack[pos - 2]);
+            fprintf(output, "%d MUL %d\n", asm_cnt, var_pos);
+            asm_cnt++;
+        }
+
+        else if (rpn[i] == '/') {
+            if (!flg) {
+                add_accum(stack[pos - 2]);
+                flg++;
+                for (int i = pos - 2; i < (int)strlen(stack); i++)
+                    stack[i] = stack[i + 1];
+            }
+            int var_pos = get_var_pos(vars, stack[pos - 2]);
+            fprintf(output, "%d DIVIDE %d\n", asm_cnt, var_pos);
+            asm_cnt++;
+        }
+
+        else {
+            char fix_var[] = { rpn[i], '\0' };
+            strcat(stack, fix_var);
+            pos++;
+        }
+    }
+}
+
 void iff()
 {
-    char tmp[255];
-    fgets(tmp, 254, fin);
+    char var_a,
+         var_b,
+         tmp_val[10], // на случай, если будет число
+         sign;
+    fscanf(fin, "%c", &var_a);
+    fscanf(fin, "%c", &var_a);
+    if (var_a < 'A') {
+        char tmp[] = { var_a, '\0' };
+        while (var_a != ' ') {
+            strcat(tmp_val, tmp);
+            fscanf(fin, "%c", &var_a);
+            tmp[0] = var_a;
+        }
+        char new_var = 'z' - tmp_cnt;
+        add_var(vars, new_var);
+        var_value[strlen(vars) - 1] = atoi(tmp_val);
+        var_a = new_var;
+    } else
+        fscanf(fin, "%c", &sign);
+    fscanf(fin, "%c", &sign);
+    fscanf(fin, "%c", &var_b);
+    fscanf(fin, "%c", &var_b);
 }
 
 void rem()
@@ -148,7 +231,6 @@ void input()
         add_var(vars, var_tmp);
     int pos = get_var_pos(vars, var_tmp); // позиция для переменной в озу
     fprintf(output, "%d READ %d\n", asm_cnt, pos);
-    count_cnt[bas_cnt] = asm_cnt;
     asm_cnt++;
 }
 
@@ -163,7 +245,6 @@ void print()
     }
     int pos = get_var_pos(vars, var_tmp);
     fprintf(output, "%d WRITE %d\n", asm_cnt, pos);
-    count_cnt[bas_cnt] = asm_cnt;
     asm_cnt++;
 }
 
@@ -180,11 +261,13 @@ void let()
     fscanf(fin, "%c", &var_tmp);
     if (!check_var(vars, var_tmp))
         add_var(vars, var_tmp);
-    fscanf(fin, "%c", &var_tmp);
-    fscanf(fin, "%c", &var_tmp);
-    char calc[255] = "\0";
-    fgets(calc, 254, fin);
-    epx_to_rpn(calc);
+    char exp[255] = "\0";
+    fgets(exp, 254, fin);
+    char *rpn = epx_to_rpn(exp);
+    calculating(rpn);
+    int pos = get_var_pos(vars, var_tmp);
+    fprintf(output, "%d STORE %d\n", asm_cnt, pos);
+    asm_cnt++;
 }
 
 void end()
@@ -221,12 +304,15 @@ void translating(const char *filename)
         fscanf(fin, "%s", command);
         if (feof(fin))
             break;
+
+        count_cnt[bas_cnt] = asm_cnt;
+
         int j = 0;
-        for (j = 0; j < 7; j++) {
-            if (!strcmp(command, command_id[j])) {
+
+        for (j = 0; j < 7; j++) 
+            if (!strcmp(command, command_id[j])) 
                 break;
-            }
-        }
+
         if (j == 0)
             rem();
         else if (j == 1)
