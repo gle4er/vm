@@ -2,13 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+void command_decode(const char *command);
+
 FILE *fin = NULL;
 FILE *output = NULL;
 
 char *vars;
 
 int asm_cnt = 0, // счётчик для асм-инструкций
-    bas_cnt = 0, // тож, ток для басика
+    bas_cnt = 1, // тож, ток для басика
     tmp_cnt = 0, // счётчик временных переменных (константы)
     *count_cnt = 0, // массив позиций (индекс - позиция в басике, значение - позиция в асме)
     *var_value = 0;
@@ -195,6 +197,7 @@ void iff()
     char var_a,
          var_b,
          tmp_val[10], // на случай, если будет число
+         trsh,
          sign;
     fscanf(fin, "%c", &var_a);
     fscanf(fin, "%c", &var_a);
@@ -211,9 +214,77 @@ void iff()
         var_a = new_var;
     } else
         fscanf(fin, "%c", &sign);
+
     fscanf(fin, "%c", &sign);
+
     fscanf(fin, "%c", &var_b);
     fscanf(fin, "%c", &var_b);
+    if (var_b < 'A') {
+        char tmp[] = { var_b, '\0' };
+        while (var_b != ' ') {
+            strcat(tmp_val, tmp);
+            fscanf(fin, "%c", &var_b);
+            tmp[0] = var_b;
+        }
+        char new_var = 'z' - tmp_cnt;
+        add_var(vars, new_var);
+        var_value[strlen(vars) - 1] = atoi(tmp_val);
+        var_b = new_var;
+    } else
+        fscanf(fin, "%c", &trsh);
+
+    if (sign == '>') {
+        int pos = get_var_pos(vars, var_a);
+        fprintf(output, "%d LOAD %d\n", asm_cnt, pos);
+        asm_cnt++;
+
+        pos = get_var_pos(vars, var_b);
+        fprintf(output, "%d SUB %d\n", asm_cnt, pos);
+        asm_cnt++;
+
+        fprintf(output, "%d JNEG !%d\n", asm_cnt, bas_cnt + 1);
+        asm_cnt++;
+    }
+
+    else if (sign == '<') {
+        int pos = get_var_pos(vars, var_b);
+        fprintf(output, "%d LOAD %d\n", asm_cnt, pos);tmp_cnt
+        asm_cnt++;
+
+        pos = get_var_pos(vars, var_a);
+        fprintf(output, "%d SUB %d\n", asm_cnt, pos);
+        asm_cnt++;
+
+        fprintf(output, "%d JNEG !%d\n", asm_cnt, bas_cnt + 1);
+        asm_cnt++;
+    }
+
+    else if (sign == '=') {
+        int pos = get_var_pos(vars, var_a);
+        fprintf(output, "%d LOAD %d\n", asm_cnt, pos);
+        asm_cnt++;
+
+        pos = get_var_pos(vars, var_b);
+        fprintf(output, "%d SUB %d\n", asm_cnt, pos);
+        asm_cnt++;
+
+        fprintf(output, "%d JNEG !%d\n", asm_cnt, bas_cnt + 1);
+        asm_cnt++;
+
+        char new_var = 'z' - tmp_cnt;
+        add_var(vars, new_var);
+        var_value[strlen(vars) - 1] = 1;
+        pos = get_var_pos(vars, new_var);
+        fprintf(output, "%d SUB %d\n", asm_cnt, pos);
+        asm_cnt++;
+
+        fprintf(output, "%d JNEG !%d\n", asm_cnt, bas_cnt + 1);
+        asm_cnt++;
+    }
+
+    char command[10] = "\0";
+    fscanf(fin, "%s", command);
+    command_decode(command);
 }
 
 void rem()
@@ -275,38 +346,8 @@ void end()
     fprintf(output, "%d HALT 00", asm_cnt);
 }
 
-void translating(const char *filename)
+void command_decode(const char *command)
 {
-    int cnt = 0; // счётчик инструкций
-    for (int i = 0; ; i++) {
-        char tmp[255];
-        fgets(tmp, 254, fin);
-        if (feof(fin))
-            break;
-        cnt++;
-    }
-
-    count_cnt = (int *) malloc(sizeof(*count_cnt) * cnt); // индекс - номер строки, содержимое - начало счётчика инстр
-    vars = (char *) malloc(sizeof(*vars) * 51);
-    var_value = (int *) malloc(sizeof(*var_value) * 50);
-    for (int k = 0; k < 50; k++)
-        var_value[k] = 0;
-
-    rewind(fin);
-    output = fopen(filename, "w");
-    int i = 0;
-    for (i = 0; !feof(fin); i++) {
-        int trsh; // муср
-        if (!fscanf(fin, "%d", &trsh)) {
-            fprintf(stderr, "Error on line: %d. Missing num of line (may be its %d?).\n", bas_cnt, bas_cnt);
-        }
-        char command[10];
-        fscanf(fin, "%s", command);
-        if (feof(fin))
-            break;
-
-        count_cnt[bas_cnt] = asm_cnt;
-
         int j = 0;
 
         for (j = 0; j < 7; j++) 
@@ -331,6 +372,42 @@ void translating(const char *filename)
             fprintf(stderr, "Error on line: %d. Wrong command.\n", bas_cnt);
             exit(EXIT_FAILURE);
         }
+}
+
+void translating(const char *filename)
+{
+    int cnt = 0; // счётчик инструкций
+    for (int i = 0; ; i++) {
+        char tmp[255];
+        fgets(tmp, 254, fin);
+        if (feof(fin))
+            break;
+        cnt++;
+    }
+
+    count_cnt = (int *) malloc(sizeof(*count_cnt) * (cnt + 1)); // индекс - номер строки, содержимое - начало счётчика инстр
+    vars = (char *) malloc(sizeof(*vars) * 51);
+    var_value = (int *) malloc(sizeof(*var_value) * 50);
+    for (int k = 0; k < 50; k++)
+        var_value[k] = 0;
+
+    rewind(fin);
+    output = fopen(filename, "w");
+    int i = 0;
+    for (i = 0; !feof(fin); i++) {
+        int trsh; // муср
+        if (!fscanf(fin, "%d", &trsh)) {
+            fprintf(stderr, "Error on line: %d. Missing num of line (may be its %d?).\n", bas_cnt, bas_cnt);
+        }
+        char command[10];
+        fscanf(fin, "%s", command);
+        if (feof(fin))
+            break;
+
+        count_cnt[bas_cnt] = asm_cnt;
+
+        command_decode(command);
+
         bas_cnt++;
     }
     // добавить переменные в конец озу
