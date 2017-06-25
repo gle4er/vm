@@ -281,18 +281,10 @@ void iff()
         fprintf(output, "%d SUB %d\n", asm_cnt, pos);
         asm_cnt++;
 
-        fprintf(output, "%d JNEG !%d\n", asm_cnt, bas_cnt + 1);
+        fprintf(output, "%d JZ %d\n", asm_cnt, asm_cnt + 2);
         asm_cnt++;
 
-        char new_var = 'z' - tmp_cnt;
-        tmp_cnt++;
-        add_var(vars, new_var);
-        var_value[strlen(vars) - 1] = 1;
-        pos = get_var_pos(vars, new_var);
-        fprintf(output, "%d SUB %d\n", asm_cnt, pos);
-        asm_cnt++;
-
-        fprintf(output, "%d JNEG !%d\n", asm_cnt, bas_cnt + 1);
+        fprintf(output, "%d JUMP !%d\n", asm_cnt, bas_cnt + 1);
         asm_cnt++;
     }
 
