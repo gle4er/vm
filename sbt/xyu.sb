@@ -1,6 +1,0 @@
-10 REM zalupa
-20 INPUT A
-30 INPUT B
-40 LET C = A - B + 22
-50 PRINT C
-60 END

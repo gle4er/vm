@@ -36,7 +36,7 @@ int sc_memorySave(const char *filename)
     FILE *file = fopen(filename, "w");
     if (!file) 
         code = OPEN_ERR;
-    if (!fwrite(memory, sizeof(int), 100, file)) 
+    if (!fwrite(memory, 4, 100, file)) 
         code = WRITE_ERR;
     fclose(file);
     return code;
@@ -48,7 +48,7 @@ int sc_memoryLoad(const char *filename)
     if (file == NULL)
         return OPEN_ERR;
     sc_memoryInit();
-    if (!fread(memory, sizeof(int), 100, file)) 
+    if (!fread(memory, 4, 100, file)) 
         return READ_ERR;
     fclose(file);
     return OK;
@@ -86,25 +86,24 @@ int sc_regGet(int regist, int *value)
 int sc_commandEncode(int command, int operand, int *value)
 {
     if ((command >= 10 && command <= 76) || command == 0) {
-        if (operand >= 0 && operand < 128)
+        if (operand >= 0 && operand < 128) {
             *value = (command << 7) | operand;
-        else if (operand > -128 && operand < 0) {
-            *value = (command << 7) | operand;
-            *value |= 1 << 14;
-        } else {
+            int mda = 1 << 14;
+            *value |= mda;
+        } else 
             return WRONG_OPERAND;
-        }
-    } else {
+    } else 
         return WRONG_COMMAND;
-    }
     return OK;
 }
 
 int sc_commandDecode(int value, int *command, int *operand)
 {
+    int mda = 1 << 14;
+    value &= ~mda;
     *command = (value >> 7);
     *operand = value & (~(*command << 7));
-    if (*command >= 10 && *command <= 76) {
+    if ((*command >= 10 && *command <= 76) || *command == 0) {
         if (*operand > -128 && *operand < 128) {
             return OK;
         } else {
@@ -140,10 +139,6 @@ int sc_accumGet(int *value)
 
 int sc_accumSet(int value)
 {
-    if (value > 127) {
-        sc_regSet(OUT_OF_MEMORY, 1);
-        return WRONG_VALUE;
-    }
     accum = value;
     return OK;
 }

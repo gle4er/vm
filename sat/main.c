@@ -20,8 +20,8 @@ void translating(const char *filename)
     int i, 
         flg = 0;
     for (i = 0; !feof(input); i++) {
-        int tmp = 0;
-        if (!fscanf(input, "%d", &tmp)) {
+        int intstr = 0;
+        if (!fscanf(input, "%d", &intstr)) {
             flg = 1;
             break;
         }
@@ -56,21 +56,24 @@ void translating(const char *filename)
             cmd = 42;
         else if (!strcmp(command, "HALT")) 
             cmd = 43;
-        else if (!strcmp(command, "=")) 
-            cmd = 0;
-        else {
+        else if (atoi(command) || command[0] == '0') {
+            sc_memorySet(intstr, atoi(command));
+            continue;
+        } else {
             flg = 2;
             break;
         }
+
         if (!fscanf(input, "%d", &operand)) {
             flg = 3;
             break;
         }
+
         if (sc_commandEncode(cmd, operand, &value)) {
             flg = 4;
             break;
         }
-        sc_memorySet(i, value);
+        sc_memorySet(intstr, value);
     }
     if (!flg)
         sc_memorySave(filename);

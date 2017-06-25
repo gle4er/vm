@@ -117,6 +117,7 @@ char *epx_to_rpn(char *exp)
 
         else if (atoi(tmp)) {
             char new_var = 'z' - tmp_cnt;
+            tmp_cnt++;
             add_var(vars, new_var);
             var_value[strlen(vars) - 1] = atoi(tmp); // -2, тк добавляется какойт шлак /177
             char fix_var[] = { new_var, '\0' };
@@ -129,63 +130,74 @@ char *epx_to_rpn(char *exp)
     return res;
 }
 
-void calculating(char *rpn)
+void calculating(char *rpn, char var)
 {
     char stack[100] = "\0";
-    int pos = 0,
-        flg = 0; // добавили ли первое значение в акум
+    int pos = 0, var_pos = 0,
+        flg = 0;
     for (int i = 0; rpn[i]; i++) {
         if (rpn[i] == '+') {
+            add_accum(stack[pos - 2]);
             if (!flg) {
-                add_accum(stack[pos - 2]);
+                var_pos = get_var_pos(vars, stack[pos - 1]);
                 flg++;
-                for (int i = pos - 2; i < (int)strlen(stack); i++)
-                    stack[i] = stack[i + 1];
-            }
-            int var_pos = get_var_pos(vars, stack[pos - 2]);
+            } else
+                var_pos = get_var_pos(vars, var);
             fprintf(output, "%d ADD %d\n", asm_cnt, var_pos);
             asm_cnt++;
+            var_pos = get_var_pos(vars, var);
+            fprintf(output, "%d STORE %d\n", asm_cnt, var_pos);
+            asm_cnt++;
+            pos--;
         }
 
         else if (rpn[i] == '-') {
+            add_accum(stack[pos - 2]);
             if (!flg) {
-                add_accum(stack[pos - 2]);
+                var_pos = get_var_pos(vars, stack[pos - 1]);
                 flg++;
-                for (int i = pos - 2; i < (int)strlen(stack); i++)
-                    stack[i] = stack[i + 1];
-            }
-            int var_pos = get_var_pos(vars, stack[pos - 2]);
+            } else
+                var_pos = get_var_pos(vars, var);
             fprintf(output, "%d SUB %d\n", asm_cnt, var_pos);
             asm_cnt++;
+            var_pos = get_var_pos(vars, var);
+            fprintf(output, "%d STORE %d\n", asm_cnt, var_pos);
+            asm_cnt++;
+            pos--;
         }
 
         else if (rpn[i] == '*') {
+            add_accum(stack[pos - 2]);
             if (!flg) {
-                add_accum(stack[pos - 2]);
+                var_pos = get_var_pos(vars, stack[pos - 1]);
                 flg++;
-                for (int i = pos - 2; i < (int)strlen(stack); i++)
-                    stack[i] = stack[i + 1];
-            }
-            int var_pos = get_var_pos(vars, stack[pos - 2]);
+            } else
+                var_pos = get_var_pos(vars, var);
             fprintf(output, "%d MUL %d\n", asm_cnt, var_pos);
             asm_cnt++;
+            var_pos = get_var_pos(vars, var);
+            fprintf(output, "%d STORE %d\n", asm_cnt, var_pos);
+            asm_cnt++;
+            pos--;
         }
 
         else if (rpn[i] == '/') {
+            add_accum(stack[pos - 2]);
             if (!flg) {
-                add_accum(stack[pos - 2]);
+                var_pos = get_var_pos(vars, stack[pos - 1]);
                 flg++;
-                for (int i = pos - 2; i < (int)strlen(stack); i++)
-                    stack[i] = stack[i + 1];
-            }
-            int var_pos = get_var_pos(vars, stack[pos - 2]);
+            } else
+                var_pos = get_var_pos(vars, var);
             fprintf(output, "%d DIVIDE %d\n", asm_cnt, var_pos);
             asm_cnt++;
+            var_pos = get_var_pos(vars, var);
+            fprintf(output, "%d STORE %d\n", asm_cnt, var_pos);
+            asm_cnt++;
+            pos--;
         }
 
         else {
-            char fix_var[] = { rpn[i], '\0' };
-            strcat(stack, fix_var);
+            stack[pos] = rpn[i];
             pos++;
         }
     }
@@ -208,6 +220,7 @@ void iff()
             tmp[0] = var_a;
         }
         char new_var = 'z' - tmp_cnt;
+        tmp_cnt++;
         add_var(vars, new_var);
         var_value[strlen(vars) - 1] = atoi(tmp_val);
         var_a = new_var;
@@ -226,6 +239,7 @@ void iff()
             tmp[0] = var_b;
         }
         char new_var = 'z' - tmp_cnt;
+        tmp_cnt++;
         add_var(vars, new_var);
         var_value[strlen(vars) - 1] = atoi(tmp_val);
         var_b = new_var;
@@ -271,6 +285,7 @@ void iff()
         asm_cnt++;
 
         char new_var = 'z' - tmp_cnt;
+        tmp_cnt++;
         add_var(vars, new_var);
         var_value[strlen(vars) - 1] = 1;
         pos = get_var_pos(vars, new_var);
@@ -322,7 +337,7 @@ void got()
 {
     int goto_pos;
     fscanf(fin, "%d", &goto_pos);
-    goto_pos %= 10;
+    goto_pos /= 10;
     fprintf(output, "%d JUMP !%d\n", asm_cnt, goto_pos);
     asm_cnt++;
 }
@@ -337,10 +352,16 @@ void let()
     char exp[255] = "\0";
     fgets(exp, 254, fin);
     char *rpn = epx_to_rpn(exp);
-    calculating(rpn);
-    int pos = get_var_pos(vars, var_tmp);
-    fprintf(output, "%d STORE %d\n", asm_cnt, pos);
-    asm_cnt++;
+    if (strlen(rpn) != 1) {
+        calculating(rpn, var_tmp);
+    } else {
+        int pos = get_var_pos(vars, rpn[0]);
+        fprintf(output, "%d LOAD %d\n", asm_cnt, pos);
+        asm_cnt++;
+        pos = get_var_pos(vars, var_tmp);
+        fprintf(output, "%d STORE %d\n", asm_cnt, pos);
+        asm_cnt++;
+    }
 }
 
 void end()
@@ -375,6 +396,31 @@ void command_decode(const char *command)
             fprintf(stderr, "Error on line: %d. Wrong command.\n", bas_cnt);
             exit(EXIT_FAILURE);
         }
+}
+
+void fix_goto()
+{
+    rename("./tmp.sa", "./tmp1.sa");
+    output = fopen("tmp.sa", "w"); 
+    FILE *filer = fopen("tmp1.sa", "r");
+    char mass[50] = "\0";
+    while (1) {
+		fscanf(filer, "%s", mass);
+        if (feof(filer))
+            break;
+		if(mass[0] == '!') {
+			for(int i = 0; i < (int)strlen(mass); i++)
+				mass[i] = mass[i + 1];
+			int temp = atoi(mass);
+			sprintf(mass, "%d", count_cnt[temp]);			
+		}			
+        char trsh;
+		fscanf(filer, "%c", &trsh);			
+		fprintf(output, "%s%c", mass, trsh);
+	}
+    fclose(output);
+    fclose(filer);
+    system("rm tmp1.sa");
 }
 
 void translating(const char *filename)
@@ -418,7 +464,9 @@ void translating(const char *filename)
         int pos = get_var_pos(vars, vars[i]);
         fprintf(output, "%d %d\n", pos, var_value[i]);
     }
-    // переписать лейблы !n на асмопонятный (n считаем во время выполнения, ! - тип лейбл)
+
+    fclose(output);
+    fix_goto();
 }
 
 int main(int argc, const char **argv)
@@ -429,5 +477,7 @@ int main(int argc, const char **argv)
     }
     load_file(argv[1]);
     translating("tmp.sa");
+    system("./sat tmp.sa tmp");
+    rename("./tmp", argv[2]);
     return 0;
 }

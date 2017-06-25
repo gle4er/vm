@@ -39,6 +39,5 @@ int sc_instGet(int *value);
 int sc_instSet(int value);
 int sc_accumGet(int *value);
 int sc_accumSet(int value);
-void CU();
 
 #endif

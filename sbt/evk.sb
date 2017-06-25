@@ -1,0 +1,9 @@
+10 INPUT A
+20 INPUT B
+30 LET C = A - B * ( A / B )
+40 LET A = B
+50 LET B = C
+60 IF B > 0 GOTO 30
+70 IF A < 0 LET A = A * -1
+80 PRINT A
+90 END

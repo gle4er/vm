@@ -33,22 +33,35 @@ void print_mem()
             y = 9;
         if (i / 10 == y && i % 10 == x)
             mt_setbgcolor(red);
-        int command, operand, value;
+        int command = 0, operand = 0, value = 0;
         sc_memoryGet(i, &value);
-        sc_commandDecode(value, &command, &operand);
-        if (operand < 0) {
-            operand *= -1;
-            command |= (1 << 7);
-        }
         char tmp1[10]; 
-        if (command < 16 && operand < 16)
-            sprintf(tmp1, "0%x:0%x", command, operand);
-        else if (command < 16 && operand >= 16)
-            sprintf(tmp1, "0%x:%x", command, operand);
-        else if (command >= 16 && operand < 16)
-            sprintf(tmp1, "%x:0%x", command, operand);
-        else
-            sprintf(tmp1, "%x:%x", command, operand);
+        if (value & (1 << 14) && value > 0) {
+            sc_commandDecode(value, &command, &operand);
+            if (command < 16 && operand < 16)
+                sprintf(tmp1, "0%x:0%x", command, operand);
+            else if (command < 16 && operand >= 16)
+                sprintf(tmp1, "0%x:%x", command, operand);
+            else if (command >= 16 && operand < 16)
+                sprintf(tmp1, "%x:0%x", command, operand);
+            else
+                sprintf(tmp1, "%x:%x", command, operand);
+        } else {
+            int tmp = value,
+                i = 3;
+            if (value < 0)
+                i--;
+            for ( ; i >= 0 && tmp > 10; i--)
+                tmp /= 10;
+            if (i == 0)
+                sprintf(tmp1, "%d", value);
+            else if (i == 1)
+                sprintf(tmp1, "0%d", value);
+            else if (i == 2)
+                sprintf(tmp1, "00%d", value);
+            else if (i == 3)
+                sprintf(tmp1, "000%d", value);
+        }
         write(1, tmp1, strlen(tmp1));
         mt_setbgcolor(deflt);
     }
@@ -56,6 +69,9 @@ void print_mem()
 
 void print_accum()
 {
+    mt_gotoXY(71, 2);
+    char mda[] = "    ";
+    write(1, mda, strlen(mda));
     mt_gotoXY(71, 2);
     int acc = 0;
     sc_accumGet(&acc);
@@ -80,90 +96,96 @@ void print_operation()
         command = 0,
         operand = 0,
         pos = y * 10 + x;
+    char tmp[5] = "\0";
     sc_memoryGet(pos, &value);
     sc_commandDecode(value, &command, &operand);
     mt_gotoXY(69, 8);
     char mda[] = "               ";
     write(1, mda, strlen(mda));
-    mt_gotoXY(69, 8);
-    if (command == 10)
-        write(1, "READ : ", 7);
-    else if (command == 11)
-        write(1, "WRITE : ", 8);
-    else if (command == 20)
-        write(1, "LOAD : ", 7);
-    else if (command == 21)
-        write(1, "STORE : ", 8);
-    else if (command == 30)
-        write(1, "ADD : ", 6);
-    else if (command == 31)
-        write(1, "SUB : ", 6);
-    else if (command == 32)
-        write(1, "DIVIDE : ", 9);
-    else if (command == 33)
-        write(1, "MUL : ", 6);
-    else if (command == 40)
-        write(1, "JUMP : ", 7);
-    else if (command == 41)
-        write(1, "JNEG : ", 7);
-    else if (command == 42)
-        write(1, "JZ : ", 5);
-    else if (command == 43)
-        write(1, "HALT : ", 7);
-    else if (command == 51)
-        write(1, "NOT : ", 6);
-    else if (command == 52)
-        write(1, "AND : ", 6);
-    else if (command == 53)
-        write(1, "OR : ", 5);
-    else if (command == 54)
-        write(1, "XOR : ", 6);
-    else if (command == 55)
-        write(1, "JNS : ", 6);
-    else if (command == 56)
-        write(1, "JC : ", 5);
-    else if (command == 57)
-        write(1, "JNC : ", 6);
-    else if (command == 58)
-        write(1, "JP : ", 5);
-    else if (command == 59)
-        write(1, "JNP : ", 6);
-    else if (command == 60)
-        write(1, "CHL : ", 6);
-    else if (command == 61)
-        write(1, "SHR : ", 6);
-    else if (command == 62)
-        write(1, "RCL : ", 6);
-    else if (command == 63)
-        write(1, "RCR : ", 6);
-    else if (command == 64)
-        write(1, "NEG : ", 6);
-    else if (command == 65)
-        write(1, "ADDC : ", 7);
-    else if (command == 66)
-        write(1, "SUBC : ", 7);
-    else if (command == 67)
-        write(1, "LOGLC : ", 8);
-    else if (command == 68)
-        write(1, "LOGRC : ", 8);
-    else if (command == 69)
-        write(1, "RCCL : ", 7);
-    else if (command == 70)
-        write(1, "RCCR : ", 7);
-    else if (command == 71)
-        write(1, "MOVA : ", 7);
-    else if (command == 72)
-        write(1, "MOVR : ", 7);
-    else if (command == 73)
-        write(1, "MOVCA : ", 8);
-    else if (command == 74)
-        write(1, "MOVCR : ", 8);
-    else if (command == 75)
-        write(1, "ADDC : ", 7);
-    else if (command == 76)
-        write(1, "SUBC : ", 7);
-    char tmp[5] = "\0";
-    sprintf(tmp, "%d", operand);
+    mt_gotoXY(66, 8);
+    sprintf(mda, "%d: ", pos);
+    write(1, mda, strlen(mda));
+    if (value & (1 << 14) && value > 0) {
+        if (command == 10)
+            write(1, "READ : ", 7);
+        else if (command == 11)
+            write(1, "WRITE : ", 8);
+        else if (command == 20)
+            write(1, "LOAD : ", 7);
+        else if (command == 21)
+            write(1, "STORE : ", 8);
+        else if (command == 30)
+            write(1, "ADD : ", 6);
+        else if (command == 31)
+            write(1, "SUB : ", 6);
+        else if (command == 32)
+            write(1, "DIVIDE : ", 9);
+        else if (command == 33)
+            write(1, "MUL : ", 6);
+        else if (command == 40)
+            write(1, "JUMP : ", 7);
+        else if (command == 41)
+            write(1, "JNEG : ", 7);
+        else if (command == 42)
+            write(1, "JZ : ", 5);
+        else if (command == 43)
+            write(1, "HALT : ", 7);
+        else if (command == 51)
+            write(1, "NOT : ", 6);
+        else if (command == 52)
+            write(1, "AND : ", 6);
+        else if (command == 53)
+            write(1, "OR : ", 5);
+        else if (command == 54)
+            write(1, "XOR : ", 6);
+        else if (command == 55)
+            write(1, "JNS : ", 6);
+        else if (command == 56)
+            write(1, "JC : ", 5);
+        else if (command == 57)
+            write(1, "JNC : ", 6);
+        else if (command == 58)
+            write(1, "JP : ", 5);
+        else if (command == 59)
+            write(1, "JNP : ", 6);
+        else if (command == 60)
+            write(1, "CHL : ", 6);
+        else if (command == 61)
+            write(1, "SHR : ", 6);
+        else if (command == 62)
+            write(1, "RCL : ", 6);
+        else if (command == 63)
+            write(1, "RCR : ", 6);
+        else if (command == 64)
+            write(1, "NEG : ", 6);
+        else if (command == 65)
+            write(1, "ADDC : ", 7);
+        else if (command == 66)
+            write(1, "SUBC : ", 7);
+        else if (command == 67)
+            write(1, "LOGLC : ", 8);
+        else if (command == 68)
+            write(1, "LOGRC : ", 8);
+        else if (command == 69)
+            write(1, "RCCL : ", 7);
+        else if (command == 70)
+            write(1, "RCCR : ", 7);
+        else if (command == 71)
+            write(1, "MOVA : ", 7);
+        else if (command == 72)
+            write(1, "MOVR : ", 7);
+        else if (command == 73)
+            write(1, "MOVCA : ", 8);
+        else if (command == 74)
+            write(1, "MOVCR : ", 8);
+        else if (command == 75)
+            write(1, "ADDC : ", 7);
+        else if (command == 76)
+            write(1, "SUBC : ", 7);
+        sprintf(tmp, "%d", operand);
+    } else {
+        sprintf(tmp, "%d", value);
+    }
     write(1, tmp, strlen(tmp));
 }
 
@@ -188,16 +210,32 @@ void print_membc()
     int value, command, operand;
     sc_memoryGet(10 * y + x, &value);
     sc_commandDecode(value, &command, &operand);
-    int big[] = {alph[command / 16 * 2], alph[command / 16 * 2 + 1]};
-    bc_printbigchar(big, 2 + 10 * 0, 14, deflt, deflt);
-    int big1[] = {alph[command % 16 * 2], alph[command % 16 * 2 + 1]};
-    bc_printbigchar(big1, 2 + 10 * 1, 14, deflt, deflt);
-    int big2[] = {alph[16 * 2], alph[16 * 2 + 1]};
-    bc_printbigchar(big2, 2 + 10 * 2, 14, deflt, deflt);
-    int big3[] = {alph[operand / 16 * 2], alph[operand / 16 * 2 + 1]};
-    bc_printbigchar(big3, 2 + 10 * 3, 14, deflt, deflt);
-    int big4[] = {alph[operand % 16 * 2], alph[operand % 16 * 2 + 1]};
-    bc_printbigchar(big4, 2 + 10 * 4, 14, deflt, deflt);
+    if (value & (1 << 14)) {
+        int big[] = {alph[command / 16 * 2], alph[command / 16 * 2 + 1]};
+        bc_printbigchar(big, 2 + 10 * 0, 14, deflt, deflt);
+        int big1[] = {alph[command % 16 * 2], alph[command % 16 * 2 + 1]};
+        bc_printbigchar(big1, 2 + 10 * 1, 14, deflt, deflt);
+        int big2[] = {alph[16 * 2], alph[16 * 2 + 1]};
+        bc_printbigchar(big2, 2 + 10 * 2, 14, deflt, deflt);
+        int big3[] = {alph[operand / 16 * 2], alph[operand / 16 * 2 + 1]};
+        bc_printbigchar(big3, 2 + 10 * 3, 14, deflt, deflt);
+        int big4[] = {alph[operand % 16 * 2], alph[operand % 16 * 2 + 1]};
+        bc_printbigchar(big4, 2 + 10 * 4, 14, deflt, deflt);
+    } else {
+        if (value > 0) {
+            int big2[] = {alph[16 * 2], alph[16 * 2 + 1]};
+            bc_printbigchar(big2, 2 + 10 * 0, 14, deflt, deflt);
+        } else
+            value *= -1;
+        int big[] = {alph[value / 16 / 16 / 16 * 2], alph[value / 16 / 16 / 16 * 2 + 1]};
+        bc_printbigchar(big, 2 + 10 * 1, 14, deflt, deflt);
+        int big1[] = {alph[value / 16 / 16 * 2], alph[value / 16 / 16 * 2 + 1]};
+        bc_printbigchar(big1, 2 + 10 * 2, 14, deflt, deflt);
+        int big3[] = {alph[value / 16 * 2], alph[value / 16 * 2 + 1]};
+        bc_printbigchar(big3, 2 + 10 * 3, 14, deflt, deflt);
+        int big4[] = {alph[value % 16 * 2], alph[value % 16 * 2 + 1]};
+        bc_printbigchar(big4, 2 + 10 * 4, 14, deflt, deflt);
+    }
 }
 
 void print_keys()

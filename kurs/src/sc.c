@@ -88,32 +88,23 @@ int sc_regGet(int regist, int *value)
 int sc_commandEncode(int command, int operand, int *value)
 {
     if ((command >= 10 && command <= 76) || command == 0) {
-        if (operand >= 0 && operand < 128)
+        if (operand >= 0 && operand < 128) {
             *value = (command << 7) | operand;
-        else if (operand > -128 && operand < 0) {
-            operand *= -1;
-            *value = (command << 7) | operand;
-            *value |= 1 << 14;
-        } else {
+            int mda = 1 << 14;
+            *value |= mda;
+        } else 
             return WRONG_OPERAND;
-        }
-    } else {
+    } else 
         return WRONG_COMMAND;
-    }
     return OK;
 }
 
 int sc_commandDecode(int value, int *command, int *operand)
 {
-    int flg = 0;
-    if (value & (1 << 14)) {
-        flg++;
-        value = value & ~(1 << 14);
-    }
+    int mda = 1 << 14;
+    value &= ~mda;
     *command = (value >> 7);
     *operand = value & (~(*command << 7));
-    if (flg)
-        *operand *= -1;
     if ((*command >= 10 && *command <= 76) || *command == 0) {
         if (*operand > -128 && *operand < 128) {
             return OK;

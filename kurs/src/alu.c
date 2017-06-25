@@ -119,8 +119,8 @@ int ADD(int operand)
     sc_memoryGet(operand, &a);
     int b = 0;
     sc_accumGet(&b);
-    a += b;
-    sc_accumSet(a);
+    b += a;
+    sc_accumSet(b);
     return 0;
 }
 
@@ -130,8 +130,8 @@ int SUB(int operand)
     sc_memoryGet(operand, &a);
     int b = 0;
     sc_accumGet(&b);
-    a -= b;
-    sc_accumSet(a);
+    b -= a;
+    sc_accumSet(b);
     return 0;
 }
 
@@ -141,8 +141,10 @@ int DIVIDE(int operand)
     sc_memoryGet(operand, &a);
     int b = 0;
     sc_accumGet(&b);
-    a /= b;
-    sc_accumSet(a);
+    if (a == 0)
+        sc_regSet(ZERO_ERR, 1);
+    b /= a;
+    sc_accumSet(b);
     return 0;
 }
 
@@ -152,8 +154,8 @@ int MUL(int operand)
     sc_memoryGet(operand, &a);
     int b = 0;
     sc_accumGet(&b);
-    a *= b;
-    sc_accumSet(a);
+    b *= a;
+    sc_accumSet(b);
     return 0;
 }
 
@@ -167,7 +169,7 @@ int JNEG(int operand)
 {
     int tmp = 0;
     sc_accumGet(&tmp);
-    if (tmp < 0)
+    if (tmp <= 0)
         sc_instSet(--operand);
     return 0;
 }
