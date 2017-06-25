@@ -126,7 +126,6 @@ char *epx_to_rpn(char *exp)
     }
     for (int i = strlen(stack) - 1; i >= 0; i--) 
         strcat(res, &stack[i]);
-    printf("%s\n", res);
     return res;
 }
 
@@ -248,7 +247,7 @@ void iff()
 
     else if (sign == '<') {
         int pos = get_var_pos(vars, var_b);
-        fprintf(output, "%d LOAD %d\n", asm_cnt, pos);tmp_cnt
+        fprintf(output, "%d LOAD %d\n", asm_cnt, pos);
         asm_cnt++;
 
         pos = get_var_pos(vars, var_a);
@@ -321,8 +320,11 @@ void print()
 
 void got()
 {
-    char tmp[255];
-    fgets(tmp, 254, fin);
+    int goto_pos;
+    fscanf(fin, "%d", &goto_pos);
+    goto_pos %= 10;
+    fprintf(output, "%d JUMP !%d\n", asm_cnt, goto_pos);
+    asm_cnt++;
 }
 
 void let()
@@ -343,7 +345,8 @@ void let()
 
 void end()
 {
-    fprintf(output, "%d HALT 00", asm_cnt);
+    fprintf(output, "%d HALT 00\n", asm_cnt);
+    asm_cnt++;
 }
 
 void command_decode(const char *command)
@@ -410,7 +413,11 @@ void translating(const char *filename)
 
         bas_cnt++;
     }
-    // добавить переменные в конец озу
+    
+    for (int i = strlen(vars) - 1; i >= 0; i--) {
+        int pos = get_var_pos(vars, vars[i]);
+        fprintf(output, "%d %d\n", pos, var_value[i]);
+    }
     // переписать лейблы !n на асмопонятный (n считаем во время выполнения, ! - тип лейбл)
 }
 
