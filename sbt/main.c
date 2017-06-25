@@ -37,7 +37,8 @@ int check_var(char *var, char var_tmp)
 
 void add_var(char *vars, char var_tmp)
 {
-    vars = strcat(vars, &var_tmp);
+    char tmp[] = { var_tmp, '\0' };
+    vars = strcat(vars, tmp);
 }
 
 int get_var_pos(char *vars, char var)
@@ -46,15 +47,13 @@ int get_var_pos(char *vars, char var)
     for (int i = 0; i < (int)strlen(vars); i++, cnt++) {
         if (var == vars[i]) 
             break;
-        else if (vars[i] == '\177')
-            cnt--;
     }
     return 99 - cnt;
 }
 
 char *epx_to_rpn(char *calc)
 {
-    char *res = (char *) malloc(sizeof(*res) * 1000);
+    char *res = (char *) calloc(100, sizeof(*res));
     char stack[50] = "\0";
     char *tmp = strtok(calc, " \n");
     while (tmp != NULL) {
@@ -64,36 +63,57 @@ char *epx_to_rpn(char *calc)
         }
         else if (tmp[0] == '+' || tmp[0] == '-' || tmp[0] == '*' 
                 || tmp[0] == '/' || tmp[0] == '(' || tmp[0] == ')') {
+
             if (tmp[0] == '+' || tmp[0] == '-') {
                 for (int i = strlen(stack) - 1; i >= 0; i--) {
+                    if (stack[i] == '(')
+                        break;
                     if (stack[i] == '*' || stack[i] == '/' ||
                             stack[i] == '+' || stack[i] == '-') {
-                        char sign = stack[i];
+                        char sign[] = { stack[i], '\0' };
                         stack[i] = '\0';
-                        strcat(res, &sign);
-                        if (strlen(stack) > 0)
-                            res[(strlen(res) - 1) - (strlen(stack) - 1)] = '\0'; // костыль, тк добавляется два знака
+                        strcat(res, sign);
                         strcat(res, " ");
                     }
                 }
             } 
+
             else if (tmp[0] == '*' || tmp[0] == '/') {
                 for (int i = strlen(stack) - 1; i >= 0; i--) {
+                    if (stack[i] == '(')
+                        break;
                     if (stack[i] == '*' || stack[i] == '/') {
-                        char sign = stack[i];
+                        char sign[] = { stack[i], '\0' };
                         stack[i] = '\0';
-                        strcat(res, &sign);
+                        strcat(res, sign);
                         strcat(res, " ");
                     }
                 }
             }
+
+            else if (tmp[0] == ')') {
+                for (int i = strlen(stack) - 1; i >= 0; i--) {
+                    if (stack[i] == '(') {
+                        stack[i] = '\0';
+                        tmp[0] = '\0';
+                        break;
+                    }
+                    char sign[] = { stack[i], '\0' };
+                    stack[i] = '\0';
+                    strcat(res, sign);
+                    strcat(res, " ");
+                }
+            }
+
             strcat(stack, &tmp[0]);
         }
+
         else if (atoi(tmp)) {
             char new_var = 'z' - strlen(vars);
             add_var(vars, new_var);
-            var_value[strlen(vars) - 2] = atoi(tmp); // -2, тк добавляется какойт шлак /177
-            strcat(res, tmp);
+            var_value[strlen(vars) - 1] = atoi(tmp); // -2, тк добавляется какойт шлак /177
+            char fix_var[] = { new_var, '\0' };
+            strcat(res, fix_var);
             strcat(res, " ");
         }
         tmp = strtok(NULL, " \n");
@@ -103,6 +123,7 @@ char *epx_to_rpn(char *calc)
         strcat(res, " ");
     }
     res[strlen(res) - 1] = '\0';
+    printf("%s\n", res);
     return res;
 }
 
