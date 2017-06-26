@@ -44,6 +44,15 @@ void add_var(char *vars, char var_tmp)
     vars = strcat(vars, tmp);
 }
 
+char add_tmpvar(char *vars, int val)
+{
+    char new_var = 'z' - tmp_cnt;
+    tmp_cnt++;
+    add_var(vars, new_var);
+    var_value[strlen(vars) - 1] = val;
+    return new_var;
+}
+
 int get_var_pos(char *vars, char var)
 {
     int cnt = 0;
@@ -54,17 +63,32 @@ int get_var_pos(char *vars, char var)
     return 99 - cnt;
 }
 
+void add_cmd(const char *cmd, int operand)
+{
+    if (!strcmp(cmd, "JNEG") || !strcmp(cmd, "JUMP")) 
+        fprintf(output, "%d %s !%d\n", asm_cnt, cmd, operand);
+    else
+        fprintf(output, "%d %s %d\n", asm_cnt, cmd, operand);
+    asm_cnt++;
+}
+
 void add_accum(char var) 
 {
     int pos = get_var_pos(vars, var);
-    fprintf(output, "%d LOAD %d\n", asm_cnt, pos);
-    asm_cnt++;
+    add_cmd("LOAD", pos);
+}
+
+void stack_pull(char *res, char *stack, int i) 
+{
+    char sign[] = { stack[i], '\0' };
+    stack[i] = '\0';
+    strcat(res, sign);
 }
 
 char *epx_to_rpn(char *exp)
 {
     char *res = (char *) calloc(100, sizeof(*res));
-    char stack[50] = "\0";
+    char *stack = (char *) calloc(100, sizeof(*res));
     char *tmp = strtok(exp, " =\n");
     while (tmp != NULL) {
 
@@ -74,52 +98,38 @@ char *epx_to_rpn(char *exp)
         else if (tmp[0] == '+' || tmp[0] == '-' || tmp[0] == '*' 
                 || tmp[0] == '/' || tmp[0] == '(' || tmp[0] == ')') {
 
-            if (tmp[0] == '+' || tmp[0] == '-') {
-                for (int i = strlen(stack) - 1; i >= 0; i--) {
-                    if (stack[i] == '(')
-                        break;
+			for (int i = strlen(stack) - 1; i >= 0; i--) {
+                if (stack[i] == '(')
+                    break;
+
+				if (tmp[0] == '+' || tmp[0] == '-') {
                     if (stack[i] == '*' || stack[i] == '/' ||
-                            stack[i] == '+' || stack[i] == '-') {
-                        char sign[] = { stack[i], '\0' };
-                        stack[i] = '\0';
-                        strcat(res, sign);
-                    }
+                            stack[i] == '+' || stack[i] == '-')
+                        stack_pull(res, stack, i);
                 }
-            } 
 
-            else if (tmp[0] == '*' || tmp[0] == '/') {
-                for (int i = strlen(stack) - 1; i >= 0; i--) {
-                    if (stack[i] == '(')
-                        break;
-                    if (stack[i] == '*' || stack[i] == '/') {
-                        char sign[] = { stack[i], '\0' };
-                        stack[i] = '\0';
-                        strcat(res, sign);
-                    }
+                else if (tmp[0] == '*' || tmp[0] == '/') {
+                    if (stack[i] == '*' || stack[i] == '/') 
+                        stack_pull(res, stack, i);
                 }
-            }
 
-            else if (tmp[0] == ')') {
-                for (int i = strlen(stack) - 1; i >= 0; i--) {
-                    if (stack[i] == '(') {
-                        stack[i] = '\0';
-                        tmp[0] = '\0';
-                        break;
+                else if (tmp[0] == ')') {
+                    for (int j = strlen(stack) - 1; j >= 0; j--) {
+                        if (stack[j] == '(') {
+                            stack[j] = '\0';
+                            tmp[0] = '\0';
+                            break;
+                        }
+                        stack_pull(res, stack, j);
                     }
-                    char sign[] = { stack[i], '\0' };
-                    stack[i] = '\0';
-                    strcat(res, sign);
                 }
             }
 
             strcat(stack, &tmp[0]);
         }
 
-        else if (atoi(tmp)) {
-            char new_var = 'z' - tmp_cnt;
-            tmp_cnt++;
-            add_var(vars, new_var);
-            var_value[strlen(vars) - 1] = atoi(tmp); // -2, тк добавляется какойт шлак /177
+        else if (atoi(tmp) || tmp[0] == '0') {
+            char new_var = add_tmpvar(vars, atoi(tmp));
             char fix_var[] = { new_var, '\0' };
             strcat(res, fix_var);
         }
@@ -135,68 +145,34 @@ void calculating(char *rpn, char var)
     char stack[100] = "\0";
     int pos = 0, var_pos = 0,
         flg = 0;
+
     for (int i = 0; rpn[i]; i++) {
-        if (rpn[i] == '+') {
+        if (pos > 1 && rpn[i] < 'A') {
+
             add_accum(stack[pos - 2]);
             if (!flg) {
                 var_pos = get_var_pos(vars, stack[pos - 1]);
                 flg++;
             } else
                 var_pos = get_var_pos(vars, var);
-            fprintf(output, "%d ADD %d\n", asm_cnt, var_pos);
-            asm_cnt++;
-            var_pos = get_var_pos(vars, var);
-            fprintf(output, "%d STORE %d\n", asm_cnt, var_pos);
-            asm_cnt++;
-            pos--;
-        }
 
-        else if (rpn[i] == '-') {
-            add_accum(stack[pos - 2]);
-            if (!flg) {
-                var_pos = get_var_pos(vars, stack[pos - 1]);
-                flg++;
-            } else
-                var_pos = get_var_pos(vars, var);
-            fprintf(output, "%d SUB %d\n", asm_cnt, var_pos);
-            asm_cnt++;
-            var_pos = get_var_pos(vars, var);
-            fprintf(output, "%d STORE %d\n", asm_cnt, var_pos);
-            asm_cnt++;
-            pos--;
-        }
+            if (rpn[i] == '+') 
+                add_cmd("ADD", var_pos);
 
-        else if (rpn[i] == '*') {
-            add_accum(stack[pos - 2]);
-            if (!flg) {
-                var_pos = get_var_pos(vars, stack[pos - 1]);
-                flg++;
-            } else
-                var_pos = get_var_pos(vars, var);
-            fprintf(output, "%d MUL %d\n", asm_cnt, var_pos);
-            asm_cnt++;
-            var_pos = get_var_pos(vars, var);
-            fprintf(output, "%d STORE %d\n", asm_cnt, var_pos);
-            asm_cnt++;
-            pos--;
-        }
+            else if (rpn[i] == '-') 
+                add_cmd("SUB", var_pos);
 
-        else if (rpn[i] == '/') {
-            add_accum(stack[pos - 2]);
-            if (!flg) {
-                var_pos = get_var_pos(vars, stack[pos - 1]);
-                flg++;
-            } else
-                var_pos = get_var_pos(vars, var);
-            fprintf(output, "%d DIVIDE %d\n", asm_cnt, var_pos);
-            asm_cnt++;
-            var_pos = get_var_pos(vars, var);
-            fprintf(output, "%d STORE %d\n", asm_cnt, var_pos);
-            asm_cnt++;
-            pos--;
-        }
+            else if (rpn[i] == '*')
+                add_cmd("MUL", var_pos);
 
-        else {
+            else if (rpn[i] == '/') 
+                add_cmd("DIVIDE", var_pos);
+
+            var_pos = get_var_pos(vars, var);
+            add_cmd("STORE", var_pos);
+            pos--;
+
+        } else {
             stack[pos] = rpn[i];
             pos++;
         }
@@ -219,11 +195,8 @@ void iff()
             fscanf(fin, "%c", &var_a);
             tmp[0] = var_a;
         }
-        char new_var = 'z' - tmp_cnt;
-        tmp_cnt++;
-        add_var(vars, new_var);
-        var_value[strlen(vars) - 1] = atoi(tmp_val);
-        var_a = new_var;
+        var_a = add_tmpvar(vars, atoi(tmp_val));
+
     } else
         fscanf(fin, "%c", &sign);
 
@@ -238,54 +211,41 @@ void iff()
             fscanf(fin, "%c", &var_b);
             tmp[0] = var_b;
         }
-        char new_var = 'z' - tmp_cnt;
-        tmp_cnt++;
-        add_var(vars, new_var);
-        var_value[strlen(vars) - 1] = atoi(tmp_val);
-        var_b = new_var;
+        var_b = add_tmpvar(vars, atoi(tmp_val));
+
     } else
         fscanf(fin, "%c", &trsh);
 
     if (sign == '>') {
         int pos = get_var_pos(vars, var_a);
-        fprintf(output, "%d LOAD %d\n", asm_cnt, pos);
-        asm_cnt++;
+        add_cmd("LOAD", pos);
 
         pos = get_var_pos(vars, var_b);
-        fprintf(output, "%d SUB %d\n", asm_cnt, pos);
-        asm_cnt++;
+        add_cmd("SUB", pos);
 
-        fprintf(output, "%d JNEG !%d\n", asm_cnt, bas_cnt + 1);
-        asm_cnt++;
+        add_cmd("JNEG", bas_cnt + 1);
     }
 
     else if (sign == '<') {
         int pos = get_var_pos(vars, var_b);
-        fprintf(output, "%d LOAD %d\n", asm_cnt, pos);
-        asm_cnt++;
+        add_cmd("LOAD", pos);
 
         pos = get_var_pos(vars, var_a);
-        fprintf(output, "%d SUB %d\n", asm_cnt, pos);
-        asm_cnt++;
+        add_cmd("SUB", pos);
 
-        fprintf(output, "%d JNEG !%d\n", asm_cnt, bas_cnt + 1);
-        asm_cnt++;
+        add_cmd("JNEG", bas_cnt + 1);
     }
 
     else if (sign == '=') {
         int pos = get_var_pos(vars, var_a);
-        fprintf(output, "%d LOAD %d\n", asm_cnt, pos);
-        asm_cnt++;
+        add_cmd("LOAD", pos);
 
         pos = get_var_pos(vars, var_b);
-        fprintf(output, "%d SUB %d\n", asm_cnt, pos);
-        asm_cnt++;
+        add_cmd("SUB", pos);
 
-        fprintf(output, "%d JZ %d\n", asm_cnt, asm_cnt + 2);
-        asm_cnt++;
+        add_cmd("JZ", asm_cnt + 2);
 
-        fprintf(output, "%d JUMP !%d\n", asm_cnt, bas_cnt + 1);
-        asm_cnt++;
+        add_cmd("JUMP", bas_cnt + 1);
     }
 
     char command[10] = "\0";
@@ -307,8 +267,7 @@ void input()
     if (!check_var(vars, var_tmp))
         add_var(vars, var_tmp);
     int pos = get_var_pos(vars, var_tmp); // позиция для переменной в озу
-    fprintf(output, "%d READ %d\n", asm_cnt, pos);
-    asm_cnt++;
+    add_cmd("READ", pos);
 }
 
 void print()
@@ -321,8 +280,7 @@ void print()
         exit(EXIT_FAILURE);
     }
     int pos = get_var_pos(vars, var_tmp);
-    fprintf(output, "%d WRITE %d\n", asm_cnt, pos);
-    asm_cnt++;
+    add_cmd("WRITE", pos);
 }
 
 void got()
@@ -330,8 +288,7 @@ void got()
     int goto_pos;
     fscanf(fin, "%d", &goto_pos);
     goto_pos /= 10;
-    fprintf(output, "%d JUMP !%d\n", asm_cnt, goto_pos);
-    asm_cnt++;
+    add_cmd("JUMP", goto_pos);
 }
 
 void let()
@@ -348,18 +305,15 @@ void let()
         calculating(rpn, var_tmp);
     } else {
         int pos = get_var_pos(vars, rpn[0]);
-        fprintf(output, "%d LOAD %d\n", asm_cnt, pos);
-        asm_cnt++;
+        add_cmd("LOAD", pos);
         pos = get_var_pos(vars, var_tmp);
-        fprintf(output, "%d STORE %d\n", asm_cnt, pos);
-        asm_cnt++;
+        add_cmd("STORE", pos);
     }
 }
 
 void end()
 {
-    fprintf(output, "%d HALT 00\n", asm_cnt);
-    asm_cnt++;
+    add_cmd("HALT", 0);
 }
 
 void command_decode(const char *command)
@@ -427,7 +381,7 @@ void translating(const char *filename)
     }
 
     count_cnt = (int *) malloc(sizeof(*count_cnt) * (cnt + 1)); // индекс - номер строки, содержимое - начало счётчика инстр
-    vars = (char *) malloc(sizeof(*vars) * 51);
+    vars = (char *) malloc(sizeof(*vars) * 50);
     var_value = (int *) malloc(sizeof(*var_value) * 50);
     for (int k = 0; k < 50; k++)
         var_value[k] = 0;
